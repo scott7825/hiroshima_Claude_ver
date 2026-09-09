@@ -1,1429 +1,1758 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>看房筆記 | Multi-Property Cloud Sync Dashboard</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
-    <style>
-        :root {
-            --bg-main: #F8F7F4;
-            --surface: #FFFFFF;
-            --surface-hover: #FAF9F6;
-            --primary: #3A5A40;
-            --primary-light: #EBF2EC;
-            --primary-hover: #2F4833;
-            --secondary: #2B4C7E;
-            --secondary-light: #EEF3FA;
-            --accent: #D97706;
-            --accent-light: #FEF3C7;
-            --danger: #DC2626;
-            --danger-light: #FEE2E2;
-            --text-main: #1F2937;
-            --text-muted: #6B7280;
-            --border-color: #E5E7EB;
-            --border-hover: #CBD5E1;
-            --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
-            --shadow-md: 0 4px 12px -2px rgba(0,0,0,0.08);
-            --radius-sm: 8px;
-            --radius-md: 12px;
-            --radius-lg: 16px;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif;
-        }
-
-        html, body {
-            background-color: var(--bg-main);
-            color: var(--text-main);
-            width: 100%;
-            overflow-x: hidden; /* Prevent horizontal scroll on mobile */
-            line-height: 1.5;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        body {
-            padding: 16px 12px;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        /* 📱 Mobile Responsive Header */
-        .app-header {
-            display: flex;
-            flex-direction: row;
-            justify-content: space-between;
-            align-items: center;
-            background: var(--surface);
-            padding: 16px 20px;
-            border-radius: var(--radius-md);
-            box-shadow: var(--shadow-sm);
-            margin-bottom: 16px;
-            border: 1px solid var(--border-color);
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .brand-icon {
-            width: 38px;
-            height: 38px;
-            background: var(--primary-light);
-            color: var(--primary);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            flex-shrink: 0;
-        }
-
-        .brand-text h1 {
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--text-main);
-            line-height: 1.2;
-        }
-
-        .brand-text p {
-            font-size: 11px;
-            color: var(--text-muted);
-        }
-
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .sync-badge {
-            font-size: 11px;
-            font-weight: 600;
-            padding: 4px 10px;
-            border-radius: 20px;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            transition: all 0.3s;
-        }
-
-        .sync-badge.online {
-            background: #D1FAE5;
-            color: #065F46;
-        }
-
-        .sync-badge.offline {
-            background: #FEF3C7;
-            color: #92400E;
-        }
-
-        /* 📱 Mobile Responsive 4 KPI Grid */
-        .kpi-row {
-            display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 12px;
-            margin-bottom: 16px;
-        }
-
-        .kpi-card {
-            background: var(--surface);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            padding: 14px 16px;
-            box-shadow: var(--shadow-sm);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            min-width: 0;
-        }
-
-        .kpi-info {
-            min-width: 0;
-            flex: 1;
-        }
-
-        .kpi-info label {
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--text-muted);
-            display: block;
-            margin-bottom: 2px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .kpi-info .kpi-val {
-            font-size: 18px;
-            font-weight: 800;
-            color: var(--primary);
-            white-space: nowrap;
-        }
-
-        .kpi-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            flex-shrink: 0;
-            margin-left: 6px;
-        }
-
-        /* 📱 Main 3-Column to 1-Column Responsive Grid */
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: 300px 360px minmax(0, 1fr);
-            gap: 16px;
-            align-items: start;
-        }
-
-        /* Responsive Breakpoints */
-        @media (max-width: 1100px) {
-            .dashboard-grid {
-                grid-template-columns: 280px minmax(0, 1fr);
-            }
-            .right-column {
-                grid-column: span 2;
-            }
-        }
-
-        @media (max-width: 768px) {
-            body {
-                padding: 10px 8px;
-            }
-
-            .app-header {
-                flex-direction: column;
-                align-items: flex-start;
-                padding: 12px 14px;
-            }
-
-            .header-actions {
-                width: 100%;
-                justify-content: space-between;
-                margin-top: 8px;
-            }
-
-            .kpi-row {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-
-            .dashboard-grid {
-                grid-template-columns: minmax(0, 1fr) !important;
-            }
-
-            .right-column {
-                grid-column: span 1 !important;
-            }
-
-            .card {
-                padding: 16px !important;
-            }
-        }
-
-        /* Card System */
-        .card {
-            background: var(--surface);
-            border-radius: var(--radius-md);
-            padding: 20px;
-            box-shadow: var(--shadow-sm);
-            border: 1px solid var(--border-color);
-            margin-bottom: 16px;
-            min-width: 0;
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 14px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .card-title {
-            font-size: 14px;
-            font-weight: 700;
-            color: var(--text-main);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        /* Property Switcher Sidebar List */
-        .property-list {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-bottom: 12px;
-        }
-
-        .property-item {
-            background: var(--bg-main);
-            border: 2px solid transparent;
-            padding: 10px 12px;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .property-item.active {
-            background: #FAFDFB;
-            border-color: var(--primary);
-            box-shadow: var(--shadow-sm);
-        }
-
-        .property-item-info {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-            min-width: 0;
-            flex: 1;
-        }
-
-        .property-item-name {
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--text-main);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .property-item.active .property-item-name {
-            color: var(--primary);
-        }
-
-        .property-item-addr {
-            font-size: 11px;
-            color: var(--text-muted);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .property-item-right {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            flex-shrink: 0;
-        }
-
-        .property-item-price {
-            font-size: 12px;
-            font-weight: 800;
-            color: var(--primary);
-        }
-
-        .btn-del-prop {
-            background: transparent;
-            border: none;
-            color: var(--text-muted);
-            font-size: 13px;
-            cursor: pointer;
-            padding: 2px 4px;
-            border-radius: 4px;
-        }
-
-        .btn-del-prop:hover {
-            color: var(--danger);
-            background: var(--danger-light);
-        }
-
-        /* Form Controls - Responsive Strict Width */
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 10px;
-            width: 100%;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            min-width: 0;
-        }
-
-        .form-group.full-width {
-            grid-column: span 2;
-        }
-
-        .form-group label {
-            font-size: 11px;
-            color: var(--text-muted);
-            font-weight: 600;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .form-control {
-            width: 100%;
-            min-width: 0;
-            padding: 8px 10px;
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-sm);
-            font-size: 16px; /* 16px prevents iOS Auto-Zoom on focus */
-            color: var(--text-main);
-            background-color: #FAFAFA;
-            box-sizing: border-box;
-        }
-
-        @media (min-width: 769px) {
-            .form-control {
-                font-size: 13px; /* Slightly smaller for desktop */
-            }
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: var(--primary);
-            background-color: #FFFFFF;
-            box-shadow: 0 0 0 3px var(--primary-light);
-        }
-
-        .form-control[readonly] {
-            background-color: #F1F5F9;
-            color: #475569;
-        }
-
-        /* Capital List UI */
-        .capital-list {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-bottom: 12px;
-        }
-
-        .capital-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: var(--bg-main);
-            padding: 8px 10px;
-            border-radius: var(--radius-sm);
-            min-width: 0;
-        }
-
-        .capital-item-name {
-            font-size: 12px;
-            font-weight: 500;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .capital-item-right {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            flex-shrink: 0;
-        }
-
-        .capital-item-val {
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--primary);
-        }
-
-        .capital-total-box {
-            background: var(--primary-light);
-            border: 1px solid #D2E3D6;
-            color: var(--primary);
-            padding: 10px 14px;
-            border-radius: var(--radius-md);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: 700;
-            font-size: 13px;
-        }
-
-        /* Bidding Scenario Cards Grid */
-        .scenario-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 12px;
-            margin-top: 12px;
-        }
-
-        .scenario-card {
-            background: var(--surface);
-            border: 2px solid var(--border-color);
-            border-radius: var(--radius-md);
-            padding: 14px;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            min-width: 0;
-        }
-
-        .scenario-card.primary-active {
-            border-color: var(--primary);
-            background-color: #FAFDFB;
-        }
-
-        .scenario-tag {
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            font-size: 10px;
-            padding: 2px 6px;
-            border-radius: 12px;
-            font-weight: 600;
-        }
-
-        .scenario-tag.tag-conservative { background: #FEF3C7; color: #B45309; }
-        .scenario-tag.tag-moderate { background: #E0E7FF; color: #3730A3; }
-        .scenario-tag.tag-target { background: #D1FAE5; color: #065F46; }
-
-        .scenario-title {
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--text-main);
-            padding-right: 60px;
-            margin-bottom: 2px;
-            word-break: break-all;
-        }
-
-        .scenario-price {
-            font-size: 22px;
-            font-weight: 800;
-            color: var(--primary);
-            margin-bottom: 10px;
-            letter-spacing: -0.5px;
-        }
-
-        .scenario-metrics-list {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            margin-bottom: 10px;
-        }
-
-        .metric-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 11px;
-            padding-bottom: 4px;
-            border-bottom: 1px dashed var(--border-color);
-        }
-
-        .metric-row:last-child {
-            border-bottom: none;
-            padding-bottom: 0;
-        }
-
-        .metric-label {
-            color: var(--text-muted);
-        }
-
-        .metric-val {
-            font-weight: 600;
-            color: var(--text-main);
-        }
-
-        .metric-highlight {
-            color: var(--accent);
-            font-weight: 700;
-        }
-
-        .scenario-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 8px;
-            padding-top: 8px;
-            border-top: 1px solid var(--border-color);
-        }
-
-        /* Canvas Area */
-        .canvas-area {
-            width: 100%;
-            min-height: 180px;
-            background: #F3F4F6;
-            border: 2px dashed var(--border-color);
-            border-radius: var(--radius-md);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-muted);
-            cursor: pointer;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .canvas-area img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-        }
-
-        /* Buttons */
-        .btn {
-            padding: 8px 14px;
-            border-radius: var(--radius-sm);
-            font-size: 12px;
-            font-weight: 600;
-            border: none;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            white-space: nowrap;
-        }
-
-        .btn-primary { background-color: var(--primary); color: #FFFFFF; }
-        .btn-outline { background-color: transparent; border: 1px solid var(--border-color); color: var(--text-main); }
-        .btn-accent { background-color: var(--secondary); color: white; }
-
-        .btn-icon-btn {
-            background: transparent;
-            border: 1px solid var(--border-color);
-            color: var(--text-muted);
-            font-size: 10px;
-            padding: 2px 6px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        .btn-icon-btn.danger:hover { background: var(--danger-light); color: var(--danger); }
-
-        .safety-badge {
-            display: inline-block;
-            padding: 2px 6px;
-            border-radius: 6px;
-            font-size: 10px;
-            font-weight: 600;
-        }
-
-        .safety-badge.safe { background: #D1FAE5; color: #065F46; }
-        .safety-badge.warning { background: #FEF3C7; color: #92400E; }
-        .safety-badge.danger { background: #FEE2E2; color: #991B1B; }
-
-        .notes-textarea {
-            width: 100%;
-            height: 90px;
-            padding: 8px;
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-sm);
-            font-size: 16px; /* iOS zoom prevention */
-            resize: vertical;
-            background: #FAFAFA;
-            box-sizing: border-box;
-        }
-
-        @media (min-width: 769px) {
-            .notes-textarea { font-size: 12px; }
-        }
-
-        /* Cloud Sync Modal / Banner */
-        .cloud-config-box {
-            background: #EFF6FF;
-            border: 1px solid #BFDBFE;
-            padding: 10px 14px;
-            border-radius: var(--radius-md);
-            margin-bottom: 16px;
-            font-size: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>廣島親子七日行 | You Family Trip Navigator</title>
+
+<!-- PWA / iOS 獨立 App 模式設定 -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="廣島慢活App">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1E293B">
+
+<!-- 內建專屬 App 楓葉圖示 (SVG Data URI) -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M51.8 11.3c.1-.2.3-.3.5-.3.2 0 .4.1.5.3l10.4 23.7c1 2.4 3.3 4 5.9 4h21.1c.2 0 .4.1.5.3.1.2.1.4 0 .6L72.1 53.8c-2.1 1.6-3 4.3-2.2 6.9L76.5 82c.1.2 0 .4-.2.5-.2.1-.4.1-.5 0L53.1 68.7c-2.2-1.3-4.9-1.3-7.1 0L23.3 82.5c-.1.1-.3.1-.5 0s-.2-.3-.2-.5l6.5-21.3c.8-2.6-.1-5.3-2.2-6.9L9.7 39.9c-.1-.1-.1-.3 0-.6s.3-.3.5-.3h21.1c2.6 0 4.9-1.6 5.9-4l10.1-23.7z' fill='%23C0392B'/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M51.8 11.3c.1-.2.3-.3.5-.3.2 0 .4.1.5.3l10.4 23.7c1 2.4 3.3 4 5.9 4h21.1c.2 0 .4.1.5.3.1.2.1.4 0 .6L72.1 53.8c-2.1 1.6-3 4.3-2.2 6.9L76.5 82c.1.2 0 .4-.2.5-.2.1-.4.1-.5 0L53.1 68.7c-2.2-1.3-4.9-1.3-7.1 0L23.3 82.5c-.1.1-.3.1-.5 0s-.2-.3-.2-.5l6.5-21.3c.8-2.6-.1-5.3-2.2-6.9L9.7 39.9c-.1-.1-.1-.3 0-.6s.3-.3.5-.3h21.1c2.6 0 4.9-1.6 5.9-4l10.1-23.7z' fill='%23C0392B'/%3E%3C/svg%3E">
+
+<style>
+  :root {
+    --bg: #F8FAFC;
+    --card: #FFFFFF;
+    --card-sub: #F1F5F9;
+    --line: #E2E8F0;
+    --ink-main: #0F172A;
+    --ink-sub: #475569;
+    --ink-muted: #94A3B8;
+    --torii: #C0392B;
+    --torii-light: #FEE2E2;
+    --indigo: #1E293B;
+    --indigo-light: #E2E8F0;
+    --gold: #D97706;
+    --gold-light: #FEF3C7;
+    --moss: #15803D;
+    --moss-light: #DCFCE7;
+    --blue: #2563EB;
+    --blue-light: #DBEAFE;
+    --radius: 16px;
+    --radius-sm: 10px;
+    --shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink-main);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+    line-height: 1.65;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  p, .selectable { -webkit-user-select: text; user-select: text; }
+  h1, h2, h3, h4 {
+    margin: 0;
+    color: var(--ink-main);
+    font-weight: 750;
+    letter-spacing: -0.015em;
+    -webkit-user-select: text; user-select: text;
+  }
+  a { color: inherit; text-decoration: none; }
+  ul { margin: 8px 0; padding-left: 20px; }
+  li { margin-bottom: 4px; }
+
+  .app-shell {
+    max-width: 600px;
+    margin: 0 auto;
+    min-height: 100vh;
+    background: var(--bg);
+    position: relative;
+  }
+
+  /* 頂部導航看板 */
+  .masthead {
+    padding: 24px 20px 18px;
+    background: linear-gradient(145deg, #0F172A 0%, #1E293B 70%, #334155 100%);
+    color: #FFFFFF;
+    position: relative;
+    border-bottom-left-radius: 24px;
+    border-bottom-right-radius: 24px;
+    box-shadow: 0 8px 20px -4px rgba(15, 23, 42, 0.15);
+  }
+  .masthead .eyebrow-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+  .masthead .kicker {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    color: var(--gold-light);
+    font-weight: 700;
+  }
+  .masthead h1 {
+    color: #FFFFFF;
+    font-size: 24px;
+    font-weight: 800;
+    margin-top: 2px;
+  }
+  .masthead .sub {
+    font-size: 13px;
+    color: #94A3B8;
+    margin-top: 4px;
+    font-weight: 500;
+  }
+
+  /* 滑動選單 (Tab Bar) */
+  .tab-bar {
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+    background: rgba(248, 250, 252, 0.92);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--line);
+    padding: 10px 12px;
+    gap: 8px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+  .tab-bar::-webkit-scrollbar { display: none; }
+  .tab-bar label {
+    flex: 0 0 auto;
+    scroll-snap-align: center;
+    padding: 8px 15px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink-sub);
+    background: #FFFFFF;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    white-space: nowrap;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 38px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  }
+
+  /* 分頁內容容器 */
+  .panels { padding: 16px 16px 60px; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* Radio-driven 標籤連動 */
+  #tab1:checked  ~ .panels #c1,
+  #tab2:checked  ~ .panels #c2,
+  #tab3:checked  ~ .panels #c3,
+  #tab4:checked  ~ .panels #c4,
+  #tab5:checked  ~ .panels #c5,
+  #tab6:checked  ~ .panels #c6,
+  #tab7:checked  ~ .panels #c7,
+  #tab8:checked  ~ .panels #c8,
+  #tab9:checked  ~ .panels #c9,
+  #tab10:checked ~ .panels #c10,
+  #tab11:checked ~ .panels #c11,
+  #tab12:checked ~ .panels #c12,
+  #tab13:checked ~ .panels #c13 { display: block; animation: fadeIn 0.25s ease-out; }
+
+  #tab1:checked  ~ .tab-bar label[for="tab1"],
+  #tab2:checked  ~ .tab-bar label[for="tab2"],
+  #tab3:checked  ~ .tab-bar label[for="tab3"],
+  #tab4:checked  ~ .tab-bar label[for="tab4"],
+  #tab5:checked  ~ .tab-bar label[for="tab5"],
+  #tab6:checked  ~ .tab-bar label[for="tab6"],
+  #tab7:checked  ~ .tab-bar label[for="tab7"],
+  #tab8:checked  ~ .tab-bar label[for="tab8"],
+  #tab9:checked  ~ .tab-bar label[for="tab9"],
+  #tab10:checked ~ .tab-bar label[for="tab10"],
+  #tab11:checked ~ .tab-bar label[for="tab11"],
+  #tab12:checked ~ .tab-bar label[for="tab12"],
+  #tab13:checked ~ .tab-bar label[for="tab13"] {
+    color: #FFFFFF;
+    background: var(--ink-main);
+    border-color: var(--ink-main);
+    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.15);
+  }
+
+  input[type="radio"] { display: none; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* 橫幅卡片 */
+  .banner-card {
+    position: relative;
+    width: 100%;
+    height: 110px;
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 16px;
+    box-shadow: var(--shadow);
+  }
+  .banner-card svg { width: 100%; height: 100%; display: block; object-fit: cover; }
+  .banner-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(15, 23, 42, 0.85) 0%, rgba(15, 23, 42, 0.25) 65%, transparent 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 14px 16px;
+    color: #FFFFFF;
+    z-index: 2;
+  }
+  .banner-overlay .kicker {
+    font-size: 11px;
+    font-weight: 750;
+    letter-spacing: 0.08em;
+    color: var(--gold-light);
+    margin-bottom: 2px;
+  }
+  .banner-overlay h2 {
+    font-size: 19px;
+    font-weight: 800;
+    color: #FFFFFF;
+    letter-spacing: -0.01em;
+  }
+
+  /* 卡片容器 */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    margin-bottom: 14px;
+    box-shadow: var(--shadow);
+  }
+  .card h3 {
+    font-size: 15.5px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 10px;
+    color: var(--ink-main);
+  }
+  .card h4 {
+    font-size: 13.5px;
+    margin: 12px 0 6px;
+    color: var(--indigo);
+  }
+  .card .meta { font-size: 13px; color: var(--ink-sub); line-height: 1.5; }
+  .card .desc { font-size: 14px; color: var(--ink-main); }
+  .divider { height: 1px; background: var(--line); margin: 12px 0; }
+
+  .highlight-id {
+    background: var(--gold-light);
+    color: #92400E;
+    font-weight: 800;
+    padding: 2px 7px;
+    border-radius: 6px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12.5px;
+    border: 1px solid #FDE68A;
+  }
+
+  .badge-row { display: flex; flex-wrap: wrap; gap: 7px; margin: 8px 0; }
+  .badge {
+    background: var(--card-sub);
+    border: 1px solid var(--line);
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ink-main);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* 按鈕系統 */
+  .btn-nav {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: var(--indigo);
+    color: #FFFFFF;
+    padding: 10px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 13.5px;
+    font-weight: 700;
+    min-height: 42px;
+    margin-top: 8px;
+    box-shadow: 0 2px 6px rgba(30, 41, 59, 0.15);
+    transition: all 0.15s ease;
+  }
+  .btn-nav:active { transform: scale(0.98); }
+  .btn-nav.torii { background: var(--torii); box-shadow: 0 2px 6px rgba(192, 57, 43, 0.2); }
+  .btn-nav.moss { background: var(--moss); box-shadow: 0 2px 6px rgba(21, 128, 61, 0.2); }
+  .btn-block { display: flex; width: 100%; }
+
+  /* 表格排版 */
+  table.plan {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 13px;
+    margin-top: 8px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+  }
+  table.plan th {
+    background: #F1F5F9;
+    color: var(--ink-sub);
+    text-align: left;
+    padding: 9px 12px;
+    font-weight: 700;
+    border-bottom: 1px solid var(--line);
+  }
+  table.plan td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+    background: #FFFFFF;
+  }
+  table.plan tr:last-child td { border-bottom: none; }
+  table.plan th:first-child, table.plan td:first-child {
+    white-space: nowrap;
+    font-weight: 750;
+    color: var(--torii);
+  }
+
+  /* 時間軸 (Timeline) */
+  .timeline { position: relative; margin-top: 4px; padding-left: 24px; }
+  .timeline::before {
+    content: "";
+    position: absolute;
+    left: 7px;
+    top: 8px;
+    bottom: 8px;
+    width: 2px;
+    background: #CBD5E1;
+  }
+  .t-item { position: relative; margin-bottom: 20px; }
+  .t-item::before {
+    content: "";
+    position: absolute;
+    left: -24px;
+    top: 5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #FFFFFF;
+    border: 3px solid var(--torii);
+    box-shadow: 0 0 0 2px var(--bg);
+  }
+  .t-time {
+    font-weight: 800;
+    color: var(--torii);
+    font-size: 14px;
+    letter-spacing: 0.02em;
+  }
+  .t-title { font-weight: 750; font-size: 15px; margin-top: 2px; color: var(--ink-main); }
+  .t-desc { font-size: 13px; color: var(--ink-sub); margin-top: 2px; line-height: 1.55; }
+  .t-tag {
+    display: inline-block;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 6px;
+    margin-top: 6px;
+    font-weight: 700;
+  }
+  .tag-key { background: var(--torii-light); color: var(--torii); }
+  .tag-tip { background: var(--moss-light); color: var(--moss); }
+
+  /* 用餐分級標籤 */
+  .tier {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 750;
+    padding: 4px 10px;
+    border-radius: 6px;
+    margin-bottom: 8px;
+  }
+  .tier-red { background: var(--torii-light); color: #B91C1C; }
+  .tier-yellow { background: var(--gold-light); color: #B45309; }
+  .tier-green { background: var(--moss-light); color: #15803D; }
+
+  .quote-box {
+    background: var(--card-sub);
+    border-left: 3px solid var(--gold);
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    color: var(--ink-sub);
+    margin-top: 8px;
+    -webkit-user-select: text; user-select: text;
+  }
+
+  .weather-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 8px;
+  }
+  .weather-box {
+    background: var(--card-sub);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    text-align: center;
+    border: 1px solid var(--line);
+  }
+  .weather-box .val { font-size: 19px; font-weight: 800; color: var(--indigo); }
+  .weather-box .lbl { font-size: 11.5px; color: var(--ink-sub); margin-top: 2px; font-weight: 600; }
+
+  /* 鐵道路網相對看板 */
+  .rail-diagram { margin: 10px 0 6px; }
+  .rail-row { display: flex; align-items: center; margin-bottom: 12px; }
+  .rail-label { font-size: 12px; font-weight: 750; width: 84px; flex-shrink: 0; color: var(--ink-sub); }
+  .rail-track {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    position: relative;
+    height: 36px;
+  }
+  .rail-track::before {
+    content: "";
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    height: 3px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  .rail-track.jr::before { background: var(--indigo); }
+  .rail-track.tram::before { background: var(--torii); }
+  .rail-stop {
+    position: relative;
+    z-index: 1;
+    flex: 1;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--ink-main);
+  }
+  .rail-stop::before {
+    content: "";
+    display: block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #FFFFFF;
+    border: 2.5px solid var(--indigo);
+    margin: 0 auto 5px auto;
+  }
+  .rail-track.tram .rail-stop::before { border-color: var(--torii); }
+  .rail-stop.base::before { background: var(--gold); border-color: var(--gold); }
+
+  /* 購物清單 UI */
+  .collab-field {
+    width: 100%;
+    border: 1px solid var(--line);
+    background: var(--card-sub);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    font-size: 14px;
+    color: var(--ink-main);
+    font-family: inherit;
+    min-height: 44px;
+    -webkit-user-select: text; user-select: text;
+    transition: all 0.2s;
+  }
+  .collab-field:focus {
+    outline: none;
+    border-color: var(--indigo);
+    background: #FFFFFF;
+    box-shadow: 0 0 0 3px rgba(30, 41, 59, 0.08);
+  }
+  .join-row { display: flex; gap: 8px; margin-top: 10px; }
+  .join-row .collab-field { flex: 1; }
+  .btn-small {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--indigo);
+    color: #FFFFFF;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 0 14px;
+    border-radius: var(--radius-sm);
+    min-height: 44px;
+    border: none;
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+  .btn-small.torii { background: var(--torii); }
+  .share-box {
+    background: var(--card-sub);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .share-box .sb-label { font-size: 12.5px; color: var(--ink-sub); font-weight: 600; }
+  #sync-status { width: 100%; font-size: 12px; color: var(--ink-muted); margin-top: 2px; font-weight: 600; }
+  .add-row { display: flex; gap: 8px; margin-bottom: 12px; }
+  .add-row .collab-field { flex: 1; }
+  ul.collab-list { list-style: none; margin: 0; padding: 0; }
+  .collab-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 4px;
+    border-bottom: 1px solid var(--line);
+  }
+  .collab-item:last-child { border-bottom: none; }
+  .collab-item input[type="checkbox"] {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+    accent-color: var(--torii);
+    cursor: pointer;
+  }
+  .collab-text { flex: 1; font-size: 14px; -webkit-user-select: text; user-select: text; color: var(--ink-main); }
+  .collab-item.checked .collab-text { text-decoration: line-through; color: var(--ink-muted); }
+  .collab-del {
+    background: none;
+    border: none;
+    color: var(--ink-muted);
+    font-size: 18px;
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+  .collab-del:hover { color: var(--torii); }
+  .collab-empty { font-size: 13px; color: var(--ink-muted); text-align: center; padding: 20px 0; }
+  .action-sub-row { display: flex; gap: 8px; margin-top: 14px; }
+  .action-sub-row button { flex: 1; }
+
+  .footer {
+    text-align: center;
+    font-size: 12px;
+    color: var(--ink-muted);
+    padding: 30px 16px 40px;
+    letter-spacing: 0.02em;
+    font-weight: 500;
+  }
+</style>
 </head>
 <body>
 
-    <header class="app-header">
-        <div class="brand">
-            <div class="brand-icon">🏡</div>
-            <div class="brand-text">
-                <h1>看房筆記 House Note</h1>
-                <p>多裝置即時同步 & 出價決策 Dashboard</p>
-            </div>
-        </div>
-        <div class="header-actions">
-            <span class="sync-badge online" id="cloudSyncStatus">🌐 雲端同步連線中</span>
-            <button class="btn btn-outline" onclick="setupCloudSync()">🔑 設定雲端同步庫</button>
-            <button class="btn btn-accent" onclick="exportJSON()">📥 匯出 JSON</button>
-        </div>
-    </header>
+<div class="app-shell">
 
-    <div class="cloud-config-box" id="cloudBanner">
-        <div>
-            <b>☁️ 全裝置實時同步說明：</b>
-            目前正在使用雲端資料庫（內建公共頻道或私有庫）。任何人在手機/電腦修改，所有人重新打開或刷新皆會看見最新數據！
+  <!-- 13 個分頁切換控制 -->
+  <input type="radio" name="tabs" id="tab1" checked>
+  <input type="radio" name="tabs" id="tab2">
+  <input type="radio" name="tabs" id="tab3">
+  <input type="radio" name="tabs" id="tab4">
+  <input type="radio" name="tabs" id="tab5">
+  <input type="radio" name="tabs" id="tab6">
+  <input type="radio" name="tabs" id="tab7">
+  <input type="radio" name="tabs" id="tab8">
+  <input type="radio" name="tabs" id="tab9">
+  <input type="radio" name="tabs" id="tab10">
+  <input type="radio" name="tabs" id="tab11">
+  <input type="radio" name="tabs" id="tab12">
+  <input type="radio" name="tabs" id="tab13">
+
+  <!-- 頂部主導航看板 -->
+  <div class="masthead">
+    <div class="eyebrow-row">
+      <div class="kicker">HIROSHIMA · MIYAJIMA · KURE</div>
+      <div class="kicker">10.18 → 10.24</div>
+    </div>
+    <h1>You Family 廣島親子七日行</h1>
+    <div class="sub">三代同遊 × 雙寶隨行 · 家族專屬導航手冊</div>
+  </div>
+
+  <!-- 滑動式分頁選單 -->
+  <div class="tab-bar">
+    <label for="tab1">📋 總覽</label>
+    <label for="tab2">🗺️ 交通</label>
+    <label for="tab3">🎟️ 購票</label>
+    <label for="tab4">🍽️ 餐廳</label>
+    <label for="tab5">🎒 備忘</label>
+    <label for="tab6">🛒 購物清單</label>
+    <label for="tab7">D1 抵達</label>
+    <label for="tab8">D2 宮島</label>
+    <label for="tab9">D3 探索</label>
+    <label for="tab10">D4 生態</label>
+    <label for="tab11">D5 海景</label>
+    <label for="tab12">D6 採購</label>
+    <label for="tab13">D7 返航</label>
+  </div>
+
+  <div class="panels">
+
+    <!-- ============ 1. 總覽 ============ -->
+    <div class="panel" id="c1">
+      <div class="banner-card">
+        <svg viewBox="0 0 400 118" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#1E293B"/>
+              <stop offset="60%" stop-color="#334155"/>
+              <stop offset="100%" stop-color="#475569"/>
+            </linearGradient>
+          </defs>
+          <rect width="400" height="118" fill="url(#g1)"/>
+          <circle cx="330" cy="30" r="18" fill="#FDE68A" opacity="0.8"/>
+          <path d="M0 95 Q60 78 120 95 T240 95 T400 88 V118 H0 Z" fill="#0F172A" opacity="0.45"/>
+          <g stroke="#F8FAFC" stroke-width="3" opacity="0.8">
+            <line x1="70" y1="60" x2="70" y2="100"/>
+            <line x1="140" y1="55" x2="140" y2="100"/>
+            <line x1="55" y1="66" x2="155" y2="66"/>
+            <line x1="60" y1="52" x2="150" y2="52"/>
+          </g>
+          <path d="M250 40 L270 46 L340 34 L344 38 L276 52 L256 48 L250 40Z" fill="#F8FAFC" opacity="0.75"/>
+        </svg>
+        <div class="banner-overlay">
+          <div class="kicker">OVERVIEW</div>
+          <h2>三代同遊 · 廣島全覽</h2>
         </div>
-        <button class="btn btn-outline" style="background:white; font-size:11px; padding:4px 8px;" onclick="resetDefaults()">🔄 重置預設</button>
+      </div>
+
+      <div class="card">
+        <h3>🏠 核心住宿基地</h3>
+        <div class="meta">〒730-0013 廣島縣廣島市中區八丁堀 12-2</div>
+        <div class="desc" style="margin-top:4px;">Airbnb · 2 間臥室 · 5 張床 · 1 間衛浴 · 4.88 ★</div>
+        <a class="btn-nav btn-block torii" href="https://www.google.com/maps/search/?api=1&query=34.3949,132.4646" target="_blank" rel="noopener">📍 Google Maps 導航前往八丁堀公寓</a>
+      </div>
+
+      <div class="card">
+        <h3>👨‍👩‍👧‍👦 出遊家庭成員</h3>
+        <div class="badge-row">
+          <span class="badge">👵 淑柃奶奶 · 65歲敬老</span>
+          <span class="badge">👨 政憲爸爸 · Scott You</span>
+          <span class="badge">👩 美佑媽媽</span>
+          <span class="badge">👩 惠茹姑姑</span>
+          <span class="badge">👧 亦璇 · 3歲</span>
+          <span class="badge">👶 亦忻 · 10個月</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>🚐 台灣專車機場接送</h3>
+        <div class="meta">上車地址：新北市三峽區中山路78-1號5F（6人）</div>
+        <div class="divider"></div>
+        <div class="desc"><strong>去程 10/18 (日)</strong> 04:45 上車 → 桃機二航廈</div>
+        <div class="meta">單號 <span class="highlight-id">F15364988</span> 總金額 NT$1,100</div>
+        <div class="divider"></div>
+        <div class="desc"><strong>回程 10/24 (六)</strong> 13:20 接機 → 返回三峽</div>
+        <div class="meta">單號 <span class="highlight-id">F15364996</span></div>
+      </div>
+
+      <div class="card">
+        <h3>✈️ 華航航班資訊</h3>
+        <div class="meta">訂位代號 <span class="highlight-id">FFYVCX</span></div>
+        <div class="divider"></div>
+        <div class="desc"><strong>去程 10/18 CI112</strong></div>
+        <div class="meta">TPE 07:15 起飛 → HIJ 10:35 抵達（第二航廈 T2）</div>
+        <div class="divider"></div>
+        <div class="desc"><strong>回程 10/24 CI113</strong></div>
+        <div class="meta">HIJ 11:40 起飛 → TPE 13:20 抵達（第二航廈 T2）</div>
+        <div class="divider"></div>
+        <ul class="selectable" style="font-size:13.5px; color:var(--ink-sub);">
+          <li>亦璇（3歲）：兒童餐 CHML</li>
+          <li>亦忻（10個月）：嬰兒餐 BBML</li>
+          <li>每人行李 23kg；推車可推至登機門辦理 Gate Check-in</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>📅 每日行程與晚餐總覽</h3>
+        <table class="plan">
+          <tr><th>日期</th><th>區域主題</th><th>晚餐安排</th></tr>
+          <tr><td>D1 10/18</td><td>抵達廣島</td><td>麗ちゃん廣島燒</td></tr>
+          <tr><td>D2 10/19</td><td>宮島嚴島神社</td><td>孫悟空黑毛和牛（包廂）</td></tr>
+          <tr><td>D3 10/20</td><td>市區探索</td><td>藥研堀八昌（排隊分流）</td></tr>
+          <tr><td>D4 10/21</td><td>安佐動物公園</td><td>釜飯醉心本店（包廂）</td></tr>
+          <tr><td>D5 10/22</td><td>吳市海景</td><td>和食さと</td></tr>
+          <tr><td>D6 10/23</td><td>永旺府中採購</td><td>廣島站居酒屋（包廂）</td></tr>
+          <tr><td>D7 10/24</td><td>返航台灣</td><td>機上精緻特餐</td></tr>
+        </table>
+      </div>
     </div>
 
-    <div class="kpi-row">
-        <div class="kpi-card">
-            <div class="kpi-info">
-                <label>個人總可調用資金</label>
-                <span class="kpi-val" id="kpiCapital">629 萬</span>
-            </div>
-            <div class="kpi-icon" style="background:#EBF2EC; color:#3A5A40;">💰</div>
+    <!-- ============ 2. 交通 ============ -->
+    <div class="panel" id="c2">
+      <div class="banner-card">
+        <svg viewBox="0 0 400 118" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+          <defs><linearGradient id="g2" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#1E293B"/><stop offset="100%" stop-color="#0F172A"/>
+          </linearGradient></defs>
+          <rect width="400" height="118" fill="url(#g2)"/>
+          <line x1="0" y1="70" x2="400" y2="70" stroke="#FDE68A" stroke-width="3" stroke-dasharray="10 8" opacity="0.7"/>
+          <rect x="40" y="45" width="46" height="22" rx="4" fill="#F8FAFC"/>
+          <rect x="130" y="45" width="46" height="22" rx="4" fill="#C0392B"/>
+          <rect x="220" y="45" width="46" height="22" rx="4" fill="#F8FAFC"/>
+          <rect x="310" y="45" width="46" height="22" rx="4" fill="#C0392B"/>
+        </svg>
+        <div class="banner-overlay">
+          <div class="kicker">TRANSIT</div>
+          <h2>雙鐵路網與每日動線</h2>
         </div>
-        <div class="kpi-card">
-            <div class="kpi-info">
-                <label id="kpiLabelAsking">當前物件開價</label>
-                <span class="kpi-val" id="kpiAskingPrice">2,088 萬</span>
+      </div>
+
+      <div class="card">
+        <h3>🚈 雙鐵相對路網看板</h3>
+        <div class="rail-diagram">
+          <div class="rail-row">
+            <div class="rail-label">JR 山陽/吳線</div>
+            <div class="rail-track jr">
+              <div class="rail-stop">吳站</div>
+              <div class="rail-stop">天神川</div>
+              <div class="rail-stop">廣島站</div>
+              <div class="rail-stop">宮島口站</div>
             </div>
-            <div class="kpi-icon" style="background:#FEF3C7; color:#B45309;">🏷️</div>
-        </div>
-        <div class="kpi-card">
-            <div class="kpi-info">
-                <label id="kpiLabelNetArea">扣車位淨坪數</label>
-                <span class="kpi-val" id="kpiNetArea">36.21 坪</span>
+          </div>
+          <div class="rail-row">
+            <div class="rail-label">路面電車</div>
+            <div class="rail-track tram">
+              <div class="rail-stop">廣島站</div>
+              <div class="rail-stop base">八丁堀🏠</div>
+              <div class="rail-stop">原爆頂站</div>
+              <div class="rail-stop">廣電宮島口</div>
             </div>
-            <div class="kpi-icon" style="background:#EEF3FA; color:#2B4C7E;">📐</div>
+          </div>
         </div>
-        <div class="kpi-card">
-            <div class="kpi-info">
-                <label id="kpiLabelTargetPMT">目標價預估月繳房貸</label>
-                <span class="kpi-val" id="kpiTargetPMT">60,433 元</span>
-            </div>
-            <div class="kpi-icon" style="background:#F3E8FF; color:#6B21A8;">📅</div>
-        </div>
+        <div class="quote-box">💡 八丁堀公寓是全家的電車樞紐，絕大多數行程皆可一線直達，免尋電梯轉乘。</div>
+      </div>
+
+      <div class="card">
+        <h3>🧭 每日交通策略摘要</h3>
+        <table class="plan">
+          <tr><th>日期</th><th>核心交通方式</th></tr>
+          <tr><td>D1</td><td>利木津大巴（機場→廣島站）＋ 廣電</td></tr>
+          <tr><td>D2</td><td>廣電2號線直達宮島口 ＋ JR無障礙渡輪</td></tr>
+          <tr><td>D3</td><td>廣電至原爆頂站 ＋ 本通平坦步道順行走回公寓</td></tr>
+          <tr><td>D4</td><td>廣電至廣島站 ＋ 廣電巴士直達安佐動物公園</td></tr>
+          <tr><td>D5</td><td>JR吳線快速列車（廣島⇄吳，看海景）</td></tr>
+          <tr><td>D6</td><td>計程車 ＋ JR一站直達天神川（永旺商城）</td></tr>
+          <tr><td>D7</td><td>廣電至廣島站 ＋ 利木津巴士直達機場</td></tr>
+        </table>
+      </div>
     </div>
 
-    <div class="dashboard-grid">
-        
-        <div class="property-sidebar-column">
-            
-            <div class="card">
-                <div class="card-header">
-                    <div class="card-title">🏘️ 看房物件清單</div>
-                    <button class="btn btn-primary" style="padding: 3px 8px; font-size:11px;" onclick="addNewProperty()">+ 新增物件</button>
-                </div>
-                <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 10px;">
-                    點擊切換物件，所有修改將<b>自動即時同步給所有開啟網站的人</b>：
-                </p>
-
-                <div class="property-list" id="propertyList">
-                    </div>
-            </div>
-
-            <div class="card">
-                <div class="card-header">
-                    <div class="card-title">💰 個人可調用資金組合</div>
-                    <button class="btn btn-outline" style="padding: 2px 8px; font-size:10px;" onclick="addCapitalItem()">+ 新增資金</button>
-                </div>
-                <div class="capital-list" id="capitalList">
-                    </div>
-                <div class="capital-total-box">
-                    <span>總可調用流動資金</span>
-                    <span id="totalCapitalVal">629 萬</span>
-                </div>
-            </div>
-
+    <!-- ============ 3. 購票 ============ -->
+    <div class="panel" id="c3">
+      <div class="banner-card">
+        <svg viewBox="0 0 400 118" xmlns="http://www.w3.org/2000/svg">
+          <defs><linearGradient id="g3" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#991B1B"/><stop offset="100%" stop-color="#D97706"/>
+          </linearGradient></defs>
+          <rect width="400" height="118" fill="url(#g3)"/>
+          <rect x="30" y="34" width="150" height="50" rx="8" fill="#FFFFFF" opacity="0.9"/>
+          <circle cx="290" cy="55" r="30" fill="none" stroke="#FFFFFF" stroke-width="3" opacity="0.6"/>
+        </svg>
+        <div class="banner-overlay">
+          <div class="kicker">TICKETS</div>
+          <h2>景點購票與敬老福利</h2>
         </div>
+      </div>
 
-        <div class="property-spec-column">
-            <div class="card">
-                <div class="card-header">
-                    <div class="card-title">🏢 選取物件詳細參數</div>
-                    <button class="btn-icon-btn danger" onclick="deleteActiveProperty()">🗑️ 刪除此物件</button>
-                </div>
-                <div class="form-grid">
-                    <div class="form-group full-width">
-                        <label>建案名稱</label>
-                        <input type="text" id="houseName" class="form-control" value="四季會館" oninput="saveCurrentPropertyForm()">
-                    </div>
-                    <div class="form-group full-width">
-                        <label>建案地址</label>
-                        <input type="text" id="houseAddress" class="form-control" value="學成路278-2號19F" oninput="saveCurrentPropertyForm()">
-                    </div>
-                    <div class="form-group">
-                        <label>房屋總坪數 (坪)</label>
-                        <input type="number" id="totalArea" class="form-control" value="47.32" step="0.01" oninput="saveCurrentPropertyForm()">
-                    </div>
-                    <div class="form-group">
-                        <label>車位坪數 (坪)</label>
-                        <input type="number" id="parkingArea" class="form-control" value="11.11" step="0.01" oninput="saveCurrentPropertyForm()">
-                    </div>
-                    <div class="form-group">
-                        <label>扣車位淨坪 (坪)</label>
-                        <input type="number" id="netArea" class="form-control" value="36.21" readonly>
-                    </div>
-                    <div class="form-group">
-                        <label>開價 (萬)</label>
-                        <input type="number" id="askingPrice" class="form-control" value="2088" oninput="saveCurrentPropertyForm()">
-                    </div>
-                    <div class="form-group">
-                        <label>車位預估價 (萬)</label>
-                        <input type="number" id="defaultParkingPrice" class="form-control" value="150" oninput="saveCurrentPropertyForm()">
-                    </div>
-                    <div class="form-group">
-                        <label>預設利率 (%)</label>
-                        <input type="number" id="interestRate" class="form-control" value="2.35" step="0.01" oninput="saveCurrentPropertyForm()">
-                    </div>
-                    <div class="form-group full-width">
-                        <label>貸款期數 (月/ 30年=360)</label>
-                        <input type="number" id="loanMonths" class="form-control" value="360" oninput="saveCurrentPropertyForm()">
-                    </div>
-                </div>
-            </div>
-        </div>
+      <div class="card">
+        <h3>👶 雙寶全程免票</h3>
+        <div class="desc">亦璇（3歲）與亦忻（10個月）全程景點皆<strong>完全免費入園</strong>！</div>
+      </div>
 
-        <div class="right-column">
+      <div class="card">
+        <h3>👵 奶奶專屬敬老禮遇</h3>
+        <div class="desc">淑柃奶奶購票時出示台灣護照正本即可享優惠：</div>
+        <ul>
+          <li>安佐動物公園：敬老票約 170 日圓</li>
+          <li>縮景園：長輩出示護照<strong>完全免費</strong></li>
+        </ul>
+      </div>
 
-            <div class="card">
-                <div class="card-header">
-                    <div>
-                        <div class="card-title">📊 多情境出價與財務試算決策引擎</div>
-                        <p style="font-size:11px; color:var(--text-muted); margin-top:2px;">
-                            公式：扣車位單價 = (出價總價 - 車位總價) ÷ 淨坪數；每月房貸採 PMT 本息平均攤還。
-                        </p>
-                    </div>
-                    <button class="btn btn-primary" onclick="addNewScenario()">+ 新增出價情境</button>
-                </div>
-
-                <div class="scenario-grid" id="scenarioContainer">
-                    </div>
-            </div>
-
-            <div class="card">
-                <div class="card-header">
-                    <div class="card-title">📐 格局圖資與現場筆記</div>
-                </div>
-                
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
-                    <div>
-                        <label style="font-size: 11px; font-weight:600; color:var(--text-muted); margin-bottom: 4px; display:block;">格局平面圖上傳預覽</label>
-                        <div class="canvas-area" id="canvasArea" onclick="document.getElementById('fileUpload').click()">
-                            <span style="font-size:24px;">🖼️</span>
-                            <span style="margin-top:4px; font-size:11px; font-weight:500;">點擊上傳格局圖檔</span>
-                            <input type="file" id="fileUpload" style="display:none;" accept="image/*" onchange="handleImageUpload(event)">
-                        </div>
-                    </div>
-                    
-                    <div style="display: flex; flex-direction: column; gap: 4px;">
-                        <label style="font-size: 11px; font-weight:600; color:var(--text-muted);">現場看房筆記 / 優缺點備忘</label>
-                        <textarea class="notes-textarea" id="propertyNotes" style="flex:1;" placeholder="記錄現場採光、公設比、通風狀況或看房心得..." oninput="saveCurrentPropertyForm()"></textarea>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
+      <div class="card">
+        <h3>⛩️ 每日景點門票參考</h3>
+        <table class="plan">
+          <tr><th>景點項目</th><th>預估票價</th></tr>
+          <tr><td>宮島訪問稅</td><td>100 日圓/人</td></tr>
+          <tr><td>嚴島神社</td><td>成人 300 日圓</td></tr>
+          <tr><td>宮島水族館</td><td>成人 1,420 日圓</td></tr>
+          <tr><td>兒童科學館</td><td>常設展<strong>完全免費</strong></td></tr>
+          <tr><td>廣島紙鶴塔</td><td>成人約 2,200 日圓</td></tr>
+        </table>
+      </div>
     </div>
 
-    <script>
-        // -------------------------------------------------------------
-        // Public Cloud Sync Storage (Free JSONBin/Firebase Endpoint)
-        // -------------------------------------------------------------
-        const DEFAULT_CLOUD_API = "https://api.jsonbin.io/v3/b/66a0a811e41b4d34e4171001";
-        let currentCloudEndpoint = localStorage.getItem('HOUSE_NOTE_CLOUD_ENDPOINT') || 'PUBLIC_DEFAULT';
-
-        const defaultCapitalItems = [
-            { id: 1, name: '玉山銀行存款', value: 179 },
-            { id: 2, name: '郵局存款', value: 383 },
-            { id: 3, name: '股票/變現資產', value: 67 }
-        ];
-
-        const defaultProperties = [
-            {
-                id: 'p1',
-                name: '四季會館',
-                address: '學成路278-2號19F',
-                totalArea: 47.32,
-                parkingArea: 11.11,
-                askingPrice: 2088,
-                parkingPrice: 150,
-                interestRate: 2.35,
-                loanMonths: 360,
-                notes: '高樓層採光極佳、格局方正無暗房、近學區步步到位。',
-                imageData: null,
-                scenarios: [
-                    { id: 'sc1', title: '1st 提給房仲 (試探底價)', price: 1780, tagClass: 'tag-conservative', tagText: '保守出價' },
-                    { id: 'sc2', title: '第二次折衝價', price: 1850, tagClass: 'tag-moderate', tagText: '折衝出價' },
-                    { id: 'sc3', title: '理想成交目標價', price: 1950, tagClass: 'tag-target', tagText: '目標底牌' }
-                ]
-            },
-            {
-                id: 'p2',
-                name: '遠雄左岸',
-                address: '環河西路二段88號12F',
-                totalArea: 52.10,
-                parkingArea: 12.50,
-                askingPrice: 2480,
-                parkingPrice: 180,
-                interestRate: 2.35,
-                loanMonths: 360,
-                notes: '水岸第一排無遮蔽景觀，公設有游泳池與健身房。',
-                imageData: null,
-                scenarios: [
-                    { id: 'sc21', title: '低於開價 12% 試探', price: 2180, tagClass: 'tag-conservative', tagText: '保守出價' },
-                    { id: 'sc22', title: '屋主折衝目標價', price: 2320, tagClass: 'tag-target', tagText: '目標底牌' }
-                ]
-            }
-        ];
-
-        let capitalItems = defaultCapitalItems;
-        let properties = defaultProperties;
-        let activePropertyId = 'p1';
-
-        // -------------------------------------------------------------
-        // Cloud Sync Persistence Logic
-        // -------------------------------------------------------------
-        let saveTimer = null;
-
-        function triggerCloudSave() {
-            clearTimeout(saveTimer);
-            let badge = document.getElementById('cloudSyncStatus');
-            if (badge) {
-                badge.className = 'sync-badge offline';
-                badge.innerText = '🔄 雲端同步寫入中...';
-            }
-
-            saveTimer = setTimeout(async () => {
-                let payload = {
-                    capitalItems: capitalItems,
-                    properties: properties,
-                    activePropertyId: activePropertyId,
-                    lastUpdated: new Date().toISOString()
-                };
-
-                localStorage.setItem('HOUSE_NOTE_CLOUD_CACHE', JSON.stringify(payload));
-
-                try {
-                    if (currentCloudEndpoint !== 'DISABLED') {
-                        let url = currentCloudEndpoint === 'PUBLIC_DEFAULT' 
-                            ? 'https://api.jsonbin.io/v3/b/66a0a811e41b4d34e4171001' 
-                            : currentCloudEndpoint;
-
-                        await fetch(url, {
-                            method: 'PUT',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-Master-Key': '$2a$10$7vM7j5mP7sL0d9Zq1a8yOu6Fz2V3B4N5C6D7E8F9G0H1I2J3K4L5M'
-                            },
-                            body: JSON.stringify(payload)
-                        });
-                    }
-
-                    if (badge) {
-                        badge.className = 'sync-badge online';
-                        badge.innerText = '🌐 全裝置實時已同步';
-                    }
-                } catch (e) {
-                    console.log("Cloud sync fallback to local cache", e);
-                    if (badge) {
-                        badge.className = 'sync-badge online';
-                        badge.innerText = '💾 已本機自動儲存';
-                    }
-                }
-            }, 600);
-        }
-
-        async function fetchLatestCloudData() {
-            let badge = document.getElementById('cloudSyncStatus');
-            try {
-                let url = currentCloudEndpoint === 'PUBLIC_DEFAULT' 
-                    ? 'https://api.jsonbin.io/v3/b/66a0a811e41b4d34e4171001' 
-                    : currentCloudEndpoint;
-
-                let response = await fetch(url, {
-                    method: 'GET',
-                    headers: { 'X-Bin-Meta': 'false' }
-                });
-
-                if (response.ok) {
-                    let data = await response.json();
-                    let record = data.record || data;
-                    if (record && record.properties) {
-                        capitalItems = record.capitalItems || defaultCapitalItems;
-                        properties = record.properties || defaultProperties;
-                        activePropertyId = record.activePropertyId || properties[0].id;
-
-                        if (badge) {
-                            badge.className = 'sync-badge online';
-                            badge.innerText = '🌐 已載入最新雲端資料';
-                        }
-                        return;
-                    }
-                }
-            } catch (e) {
-                console.log("Cloud fetch error, loading local cache.", e);
-            }
-
-            let cached = localStorage.getItem('HOUSE_NOTE_CLOUD_CACHE');
-            if (cached) {
-                let parsed = JSON.parse(cached);
-                capitalItems = parsed.capitalItems || defaultCapitalItems;
-                properties = parsed.properties || defaultProperties;
-                activePropertyId = parsed.activePropertyId || 'p1';
-            }
-        }
-
-        function setupCloudSync() {
-            let key = prompt(
-                '🔑 請輸入私有 Cloud API 網址 (JSONBin / Firebase / Supabase)：\n' +
-                '按取消留空則使用預設免費公共頻道，輸入 "CLEAR" 可恢復預設。',
-                currentCloudEndpoint === 'PUBLIC_DEFAULT' ? '' : currentCloudEndpoint
-            );
-
-            if (key !== null) {
-                if (key.trim() === 'CLEAR' || key.trim() === '') {
-                    currentCloudEndpoint = 'PUBLIC_DEFAULT';
-                    localStorage.setItem('HOUSE_NOTE_CLOUD_ENDPOINT', 'PUBLIC_DEFAULT');
-                    alert('已切換為公共雲端頻道！');
-                } else {
-                    currentCloudEndpoint = key.trim();
-                    localStorage.setItem('HOUSE_NOTE_CLOUD_ENDPOINT', currentCloudEndpoint);
-                    alert('已綁定您專屬的雲端同步金鑰！');
-                }
-                location.reload();
-            }
-        }
-
-        function getActiveProperty() {
-            return properties.find(p => p.id === activePropertyId) || properties[0];
-        }
-
-        // -------------------------------------------------------------
-        // Capital Management
-        // -------------------------------------------------------------
-        function renderCapitalList() {
-            let container = document.getElementById('capitalList');
-            container.innerHTML = '';
-            let total = 0;
-
-            capitalItems.forEach(item => {
-                total += item.value;
-                let div = document.createElement('div');
-                div.className = 'capital-item';
-                div.innerHTML = `
-                    <span class="capital-item-name">${item.name}</span>
-                    <div class="capital-item-right">
-                        <span class="capital-item-val">${item.value} 萬</span>
-                        <button class="btn-icon-btn" title="編輯" onclick="editCapitalItem(${item.id})">✏️</button>
-                        <button class="btn-icon-btn danger" title="刪除" onclick="deleteCapitalItem(${item.id})">✕</button>
-                    </div>
-                `;
-                container.appendChild(div);
-            });
-
-            document.getElementById('totalCapitalVal').innerText = `${total.toLocaleString()} 萬`;
-            document.getElementById('kpiCapital').innerText = `${total.toLocaleString()} 萬`;
-
-            renderScenarios();
-        }
-
-        function addCapitalItem() {
-            let name = prompt('請輸入資金來源名稱（例：玉山定存、台股現值）：');
-            if (!name) return;
-
-            let valStr = prompt(`請輸入「${name}」的金額（萬元）：`, '100');
-            let val = parseFloat(valStr);
-
-            if (!isNaN(val) && val >= 0) {
-                capitalItems.push({ id: Date.now(), name: name.trim(), value: val });
-                renderCapitalList();
-                triggerCloudSave();
-            } else {
-                alert('請輸入有效的金額數字！');
-            }
-        }
-
-        function editCapitalItem(id) {
-            let item = capitalItems.find(i => i.id === id);
-            if (!item) return;
-
-            let newName = prompt('修改資金名稱：', item.name);
-            if (!newName) return;
-
-            let newValStr = prompt(`修改「${newName}」的金額（萬元）：`, item.value);
-            let newVal = parseFloat(newValStr);
-
-            if (!isNaN(newVal) && newVal >= 0) {
-                item.name = newName.trim();
-                item.value = newVal;
-                renderCapitalList();
-                triggerCloudSave();
-            } else {
-                alert('請輸入有效的金額數字！');
-            }
-        }
-
-        function deleteCapitalItem(id) {
-            if (confirm('確定要刪除這筆資金項目嗎？')) {
-                capitalItems = capitalItems.filter(item => item.id !== id);
-                renderCapitalList();
-                triggerCloudSave();
-            }
-        }
-
-        function getTotalCapital() {
-            return capitalItems.reduce((sum, item) => sum + item.value, 0);
-        }
-
-        // -------------------------------------------------------------
-        // Multi-Property Switcher & Deletion
-        // -------------------------------------------------------------
-        function renderPropertyListUI() {
-            let container = document.getElementById('propertyList');
-            container.innerHTML = '';
-
-            properties.forEach(p => {
-                let div = document.createElement('div');
-                div.className = `property-item ${p.id === activePropertyId ? 'active' : ''}`;
-                div.onclick = () => selectProperty(p.id);
-
-                div.innerHTML = `
-                    <div class="property-item-info">
-                        <span class="property-item-name">${p.name || '未命名物件'}</span>
-                        <span class="property-item-addr">${p.address || '無地址資訊'}</span>
-                    </div>
-                    <div class="property-item-right">
-                        <span class="property-item-price">${p.askingPrice ? p.askingPrice.toLocaleString() + '萬' : '--'}</span>
-                        <button class="btn-del-prop" title="移除此物件" onclick="deletePropertyItem(event, '${p.id}')">✕</button>
-                    </div>
-                `;
-                container.appendChild(div);
-            });
-        }
-
-        function selectProperty(id) {
-            saveCurrentPropertyForm();
-            activePropertyId = id;
-            renderPropertyListUI();
-            loadActivePropertyToForm();
-            renderScenarios();
-            triggerCloudSave();
-        }
-
-        function addNewProperty() {
-            let name = prompt('請輸入新物件/建案名稱（例如：遠雄左岸、國天廈）：', '新看房物件');
-            if (!name) return;
-
-            let newProp = {
-                id: 'p_' + Date.now(),
-                name: name.trim(),
-                address: '請輸入地址',
-                totalArea: 45.0,
-                parkingArea: 10.0,
-                askingPrice: 2000,
-                parkingPrice: 150,
-                interestRate: 2.35,
-                loanMonths: 360,
-                notes: '',
-                imageData: null,
-                scenarios: [
-                    { id: 'sc_' + Date.now(), title: '初步試探價', price: 1750, tagClass: 'tag-conservative', tagText: '保守出價' },
-                    { id: 'sc_' + (Date.now()+1), title: '目標成交價', price: 1880, tagClass: 'tag-target', tagText: '目標底牌' }
-                ]
-            };
-
-            properties.push(newProp);
-            selectProperty(newProp.id);
-        }
-
-        function deletePropertyItem(event, id) {
-            event.stopPropagation();
-
-            if (properties.length <= 1) {
-                alert('清單中至少需保留一個物件！');
-                return;
-            }
-
-            let targetProp = properties.find(p => p.id === id);
-            if (confirm(`確定要移除「${targetProp ? targetProp.name : '這個'}」物件嗎？`)) {
-                properties = properties.filter(p => p.id !== id);
-                
-                if (id === activePropertyId) {
-                    activePropertyId = properties[0].id;
-                }
-
-                renderPropertyListUI();
-                loadActivePropertyToForm();
-                renderScenarios();
-                triggerCloudSave();
-            }
-        }
-
-        function deleteActiveProperty() {
-            deletePropertyItem(new Event('click'), activePropertyId);
-        }
-
-        function loadActivePropertyToForm() {
-            let p = getActiveProperty();
-            if (!p) return;
-
-            document.getElementById('houseName').value = p.name || '';
-            document.getElementById('houseAddress').value = p.address || '';
-            document.getElementById('totalArea').value = p.totalArea || 0;
-            document.getElementById('parkingArea').value = p.parkingArea || 0;
-            document.getElementById('askingPrice').value = p.askingPrice || 0;
-            document.getElementById('defaultParkingPrice').value = p.parkingPrice || 0;
-            document.getElementById('interestRate').value = p.interestRate || 2.35;
-            document.getElementById('loanMonths').value = p.loanMonths || 360;
-            document.getElementById('propertyNotes').value = p.notes || '';
-
-            let canvasArea = document.getElementById('canvasArea');
-            if (p.imageData) {
-                canvasArea.innerHTML = `<img src="${p.imageData}" alt="格局圖">`;
-            } else {
-                canvasArea.innerHTML = `
-                    <span style="font-size:24px;">🖼️</span>
-                    <span style="margin-top:4px; font-size:11px; font-weight:500;">點擊上傳格局圖檔</span>
-                    <input type="file" id="fileUpload" style="display:none;" accept="image/*" onchange="handleImageUpload(event)">
-                `;
-            }
-        }
-
-        function saveCurrentPropertyForm() {
-            let p = getActiveProperty();
-            if (!p) return;
-
-            p.name = document.getElementById('houseName').value;
-            p.address = document.getElementById('houseAddress').value;
-            p.totalArea = parseFloat(document.getElementById('totalArea').value) || 0;
-            p.parkingArea = parseFloat(document.getElementById('parkingArea').value) || 0;
-            p.askingPrice = parseFloat(document.getElementById('askingPrice').value) || 0;
-            p.parkingPrice = parseFloat(document.getElementById('defaultParkingPrice').value) || 0;
-            p.interestRate = parseFloat(document.getElementById('interestRate').value) || 2.35;
-            p.loanMonths = parseFloat(document.getElementById('loanMonths').value) || 360;
-            p.notes = document.getElementById('propertyNotes').value;
-
-            renderPropertyListUI();
-            renderScenarios();
-            triggerCloudSave();
-        }
-
-        // -------------------------------------------------------------
-        // Loan & Financial PMT Calculations & KPI Live Updates
-        // -------------------------------------------------------------
-        function calculatePMT(rate, nper, pv) {
-            let r = rate / 100 / 12;
-            if (r === 0) return pv / nper;
-            return pv * (r * Math.pow(1 + r, nper)) / (Math.pow(1 + r, nper) - 1);
-        }
-
-        function renderScenarios() {
-            let p = getActiveProperty();
-            if (!p) return;
-
-            let totalArea = p.totalArea || 0;
-            let parkingArea = p.parkingArea || 0;
-            let netArea = totalArea - parkingArea;
-            document.getElementById('netArea').value = netArea > 0 ? netArea.toFixed(2) : 0;
-
-            let askingPrice = p.askingPrice || 0;
-            let parkingPrice = p.parkingPrice || 150;
-            let rate = p.interestRate || 2.35;
-            let months = p.loanMonths || 360;
-            let totalCapital = getTotalCapital();
-
-            document.getElementById('kpiAskingPrice').innerText = `${askingPrice.toLocaleString()} 萬`;
-            document.getElementById('kpiNetArea').innerText = `${netArea > 0 ? netArea.toFixed(2) : 0} 坪`;
-            document.getElementById('kpiLabelAsking').innerText = `「${p.name || '物件'}」開價`;
-            document.getElementById('kpiLabelNetArea').innerText = `「${p.name || '物件'}」扣車位坪數`;
-
-            let container = document.getElementById('scenarioContainer');
-            container.innerHTML = '';
-
-            if (!p.scenarios || p.scenarios.length === 0) {
-                container.innerHTML = '<p style="font-size:12px; color:var(--text-muted);">尚無出價情境，請點擊右上角新增。</p>';
-                document.getElementById('kpiTargetPMT').innerText = '-- 元';
-                return;
-            }
-
-            p.scenarios.forEach((sc, index) => {
-                let unitPrice = netArea > 0 ? (sc.price - parkingPrice) / netArea : 0;
-                let loan = sc.price * 0.8;
-                let down = sc.price - loan;
-                let pmt = calculatePMT(rate, months, loan * 10000);
-                let safety = totalCapital - down;
-
-                let safetyClass = 'safe';
-                let safetyText = `餘額 ${safety.toFixed(0)} 萬 (充裕)`;
-
-                if (safety < 0) {
-                    safetyClass = 'danger';
-                    safetyText = `缺口 ${Math.abs(safety).toFixed(0)} 萬 (透支)`;
-                } else if (safety < 100) {
-                    safetyClass = 'warning';
-                    safetyText = `餘額 ${safety.toFixed(0)} 萬 (偏緊)`;
-                }
-
-                if (index === p.scenarios.length - 1) {
-                    document.getElementById('kpiTargetPMT').innerText = `${Math.round(pmt).toLocaleString()} 元`;
-                    document.getElementById('kpiLabelTargetPMT').innerText = `「${p.name}」目標價月繳房貸`;
-                }
-
-                let card = document.createElement('div');
-                card.className = `scenario-card ${index === p.scenarios.length - 1 ? 'primary-active' : ''}`;
-                card.innerHTML = `
-                    <span class="scenario-tag ${sc.tagClass || 'tag-moderate'}">${sc.tagText || '出價情境'}</span>
-                    <div>
-                        <div class="scenario-title">${sc.title}</div>
-                        <div class="scenario-price">${sc.price.toLocaleString()} 萬</div>
-                        
-                        <div class="scenario-metrics-list">
-                            <div class="metric-row">
-                                <span class="metric-label">扣車位單價</span>
-                                <span class="metric-val">${unitPrice.toFixed(2)} 萬/坪</span>
-                            </div>
-                            <div class="metric-row">
-                                <span class="metric-label">預估可貸金額 (8成)</span>
-                                <span class="metric-val">${loan.toFixed(0)} 萬</span>
-                            </div>
-                            <div class="metric-row">
-                                <span class="metric-label">自備頭期款</span>
-                                <span class="metric-highlight">${down.toFixed(0)} 萬</span>
-                            </div>
-                            <div class="metric-row">
-                                <span class="metric-label">每月房貸 (${(months/12).toFixed(0)}年)</span>
-                                <span class="metric-val">${Math.round(pmt).toLocaleString()} 元/月</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="scenario-footer">
-                        <span class="safety-badge ${safetyClass}">${safetyText}</span>
-                        <div style="display:flex; gap:4px;">
-                            <button class="btn-icon-btn" onclick="editScenario('${sc.id}')">✏️</button>
-                            <button class="btn-icon-btn danger" onclick="deleteScenario('${sc.id}')">🗑️</button>
-                        </div>
-                    </div>
-                `;
-                container.appendChild(card);
-            });
-        }
-
-        function addNewScenario() {
-            let p = getActiveProperty();
-            let title = prompt(`請輸入「${p.name}」的新出價情境名稱：`, '新出價情境');
-            if (!title) return;
-
-            let priceStr = prompt(`請輸入出價總價（萬元）：`, '1900');
-            let price = parseFloat(priceStr);
-
-            if (!isNaN(price) && price > 0) {
-                p.scenarios.push({
-                    id: 'sc_' + Date.now(),
-                    title: title.trim(),
-                    price: price,
-                    tagClass: 'tag-moderate',
-                    tagText: '自訂情境'
-                });
-                renderScenarios();
-                triggerCloudSave();
-            } else {
-                alert('請輸入有效的數字金額！');
-            }
-        }
-
-        function editScenario(id) {
-            let p = getActiveProperty();
-            let sc = p.scenarios.find(item => item.id === id);
-            if (!sc) return;
-
-            let newTitle = prompt('修改出價情境名稱：', sc.title);
-            if (!newTitle) return;
-
-            let newPriceStr = prompt('修改出價總價（萬元）：', sc.price);
-            let newPrice = parseFloat(newPriceStr);
-
-            if (!isNaN(newPrice) && newPrice > 0) {
-                sc.title = newTitle.trim();
-                sc.price = newPrice;
-                renderScenarios();
-                triggerCloudSave();
-            } else {
-                alert('請輸入有效的數字金額！');
-            }
-        }
-
-        function deleteScenario(id) {
-            let p = getActiveProperty();
-            if (p.scenarios.length <= 1) {
-                alert('每個物件至少需要保留一組出價情境進行試算！');
-                return;
-            }
-
-            if (confirm('確定要刪除這組出價情境嗎？')) {
-                p.scenarios = p.scenarios.filter(item => item.id !== id);
-                renderScenarios();
-                triggerCloudSave();
-            }
-        }
-
-        function handleImageUpload(event) {
-            let file = event.target.files[0];
-            if (file) {
-                let reader = new FileReader();
-                reader.onload = function(e) {
-                    let p = getActiveProperty();
-                    p.imageData = e.target.result;
-                    let canvasArea = document.getElementById('canvasArea');
-                    canvasArea.innerHTML = `<img src="${p.imageData}" alt="格局圖">`;
-                    triggerCloudSave();
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        function resetDefaults() {
-            if (confirm('確定要重置為預設範例資料嗎？')) {
-                localStorage.clear();
-                location.reload();
-            }
-        }
-
-        function exportJSON() {
-            saveCurrentPropertyForm();
-            let data = {
-                capitalItems: capitalItems,
-                properties: properties,
-                exportDate: new Date().toISOString()
-            };
-            let blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-            let a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `house_notes_all_properties_export.json`;
-            a.click();
-        }
-
-        // Initialize App on load with async Cloud Sync
-        window.onload = async function() {
-            await fetchLatestCloudData();
-            renderCapitalList();
-            renderPropertyListUI();
-            loadActivePropertyToForm();
-            renderScenarios();
-        };
-    </script>
+    <!-- ============ 4. 餐廳 ============ -->
+    <div class="panel" id="c4">
+      <div class="banner-card">
+        <svg viewBox="0 0 400 118" xmlns="http://www.w3.org/2000/svg">
+          <defs><linearGradient id="g4" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#1E3A8A"/><stop offset="100%" stop-color="#0F172A"/>
+          </linearGradient></defs>
+          <rect width="400" height="118" fill="url(#g4)"/>
+          <ellipse cx="200" cy="80" rx="90" ry="18" fill="#FFFFFF" opacity="0.8"/>
+          <line x1="270" y1="30" x2="300" y2="70" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"/>
+          <line x1="284" y1="30" x2="314" y2="70" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"/>
+        </svg>
+        <div class="banner-overlay">
+          <div class="kicker">DINING STRATEGY</div>
+          <h2>三級用餐與預約戰術</h2>
+        </div>
+      </div>
+
+      <div class="card">
+        <span class="tier tier-red">🔴 類別一 · 強烈預訂獨立包廂</span>
+        <ul style="font-size:13.5px; color:var(--ink-sub);">
+          <li><strong>D2 晚餐</strong>：孫悟空燒肉 — 預約包廂，安撫雙寶無壓力</li>
+          <li><strong>D4 晚餐</strong>：釜飯醉心本店 — 廣島名產，電梯直達和風座</li>
+          <li><strong>D6 晚餐</strong>：廣島站居酒屋 — 預約獨立家庭包廂慶祝</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <span class="tier tier-yellow">🟡 類別二 · 現場排隊分流戰術</span>
+        <ul style="font-size:13.5px; color:var(--ink-sub);">
+          <li><strong>D3 晚餐（藥研堀八昌）</strong>：爸爸與姑姑 18:00 先候位，媽媽帶長輩雙寶 18:30 入座直享名店</li>
+          <li><strong>D1 晚餐（麗ちゃん）</strong>：站內平坦，商場備有長椅供長輩稍坐</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <span class="tier tier-green">🟢 類別三 · 彈性直接前往</span>
+        <ul style="font-size:13.5px; color:var(--ink-sub);">
+          <li><strong>D3 午餐</strong>：大丸堂（廣島燒村4F，電梯直達）</li>
+          <li><strong>D5 晚餐</strong>：和食さと（日式家庭餐廳，沙發座寬敞）</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>🗣️ 日文預約備註 (點擊即可複製)</h3>
+        <div class="quote-box selectable" style="font-size:13.5px; line-height:1.7;">
+          大人4名、高齢者1名、幼児2名（3歳、0歳）の合計6名です。ベビーカーのまま入れる広い席、できれば個室をお願いします。
+        </div>
+        <div class="meta" style="margin-top:6px;">（我們共 6 人含 1 位長者、2 位幼兒，請協助安排推車便於進出的座位或包廂）</div>
+      </div>
+    </div>
+
+    <!-- ============ 5. 備忘 ============ -->
+    <div class="panel" id="c5">
+      <div class="banner-card">
+        <svg viewBox="0 0 400 118" xmlns="http://www.w3.org/2000/svg">
+          <defs><linearGradient id="g5" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#475569"/><stop offset="100%" stop-color="#1E293B"/>
+          </linearGradient></defs>
+          <rect width="400" height="118" fill="url(#g5)"/>
+          <ellipse cx="140" cy="50" rx="50" ry="24" fill="#FFFFFF" opacity="0.85"/>
+          <circle cx="300" cy="40" r="16" fill="#FDE68A" opacity="0.8"/>
+        </svg>
+        <div class="banner-overlay">
+          <div class="kicker">WEATHER &amp; PACKING</div>
+          <h2>氣候概況與必帶清單</h2>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>🌤️ 廣島 10 月中下旬歷史氣候</h3>
+        <div class="weather-grid">
+          <div class="weather-box"><div class="val">21–24°C</div><div class="lbl">日間舒適高溫</div></div>
+          <div class="weather-box"><div class="val">12–15°C</div><div class="lbl">夜間涼爽低溫</div></div>
+          <div class="weather-box"><div class="val">90–110mm</div><div class="lbl">月降雨量 (偏少)</div></div>
+          <div class="weather-box"><div class="val">7–8 天</div><div class="lbl">平均降雨天數</div></div>
+        </div>
+        <div class="quote-box">秋高氣爽居多（降雨機率約 25%），但日夜溫差達 10°C。宮島與吳市港邊海風勁涼，務必攜帶洋蔥式薄羽絨／推車防風罩。</div>
+      </div>
+
+      <div class="card">
+        <h3>💊 必帶小兒常備藥品 (台灣開立)</h3>
+        <ul style="font-size:13.5px; color:var(--ink-sub);">
+          <li>退燒塞劑（防嘔吐無法服藥）＋ 口服退燒藥水</li>
+          <li>綜合感冒/止咳化痰藥水 ＋ 電解質粉沖泡包</li>
+          <li>耳溫槍 ＋ 屁屁膏 ＋ 外用止癢消炎膏</li>
+        </ul>
+        <div class="quote-box" style="border-left-color:var(--torii);">⚠️ 日本法規嚴格，一般藥局極難直接買到 1 歲以下（亦忻）之處方藥，請務必在台備足。</div>
+      </div>
+
+      <div class="card">
+        <h3>🍼 雙寶外出應急備品</h3>
+        <ul style="font-size:13.5px; color:var(--ink-sub);">
+          <li>免加熱常溫副食品粥包（3~5包，防外食口味偏鹹）</li>
+          <li>拋棄式奶瓶 ＋ 奶粉分裝袋（外出免洗奶瓶首選）</li>
+          <li>推車防風防雨罩（海邊防風保暖神器）</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>🧳 分裝策略</h3>
+        <ul style="font-size:13.5px; color:var(--ink-sub);">
+          <li><strong>隨身媽媽包：</strong>護照證件、退燒藥、副食品粥1包、推車防風罩、薄外套</li>
+          <li><strong>託運行李箱：</strong>大罐奶粉、大量尿布、護照影本備份、備用藥庫存</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ============ 6. 購物清單 (已修復與升級) ============ -->
+    <div class="panel" id="c6">
+      <div class="banner-card">
+        <svg viewBox="0 0 400 118" xmlns="http://www.w3.org/2000/svg">
+          <defs><linearGradient id="g6" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#C0392B"/><stop offset="100%" stop-color="#15803D"/>
+          </linearGradient></defs>
+          <rect width="400" height="118" fill="url(#g6)"/>
+          <path d="M150 40 h100 l10 60 h-120 z" fill="#FFFFFF" opacity="0.85"/>
+          <path d="M168 40 a32 26 0 0 1 64 0" fill="none" stroke="#FFFFFF" stroke-width="5" opacity="0.85"/>
+        </svg>
+        <div class="banner-overlay">
+          <div class="kicker">SHOPPING &amp; SYNC</div>
+          <h2>採購地圖與共用清單</h2>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>🛒 家族雲端同步購物清單</h3>
+        <div class="desc">多台手機打勾即時連線更新！離線時自動保存於手機，重新連網後自動雙向同步。</div>
+
+        <!-- 初始畫面 -->
+        <div id="collab-onboard" style="display:none; margin-top:12px;">
+          <div class="quote-box">首次使用請點擊「建立新共享清單」，再將分享連結傳至 LINE 群組，家人點開即可自動加入同一份清單！</div>
+          <button id="btn-create" class="btn-nav btn-block moss" type="button">✨ 建立新共享清單</button>
+          <div class="join-row">
+            <input id="join-code" class="collab-field" type="text" inputmode="latin" placeholder="或輸入家人給的分享代碼">
+            <button id="btn-join" class="btn-small" type="button">加入</button>
+          </div>
+        </div>
+
+        <!-- 啟用中畫面 -->
+        <div id="collab-active" style="display:none; margin-top:12px;">
+          <div class="share-box">
+            <span class="sb-label">共享代碼：</span>
+            <span id="share-code" class="highlight-id selectable"></span>
+            <button id="btn-copy-link" class="btn-small torii" type="button">📋 複製 LINE 分享連結</button>
+            <button id="btn-copy" class="btn-small" type="button" style="background:#475569;">複製代碼</button>
+            <div id="sync-status">🟢 載入中…</div>
+          </div>
+
+          <div class="add-row">
+            <input id="new-item" class="collab-field" type="text" placeholder="新增品項，例如：合利他命 EX Plus">
+            <button id="btn-add" class="btn-small" type="button">新增</button>
+          </div>
+
+          <ul id="item-list" class="collab-list"></ul>
+
+          <div class="action-sub-row">
+            <button id="btn-seed" class="btn-small" style="background:var(--moss);" type="button">📥 匯入行程推薦必買品</button>
+            <button id="btn-reset" class="btn-small" style="background:#64748B;" type="button">🔄 更換清單代碼</button>
+          </div>
+        </div>
+
+        <div class="divider" style="margin:16px 0 14px;"></div>
+
+        <a class="btn-nav btn-block" style="background:#D97706; color:#FFFFFF;" href="https://www.icloud.com/notes/0804x4XQzQ7WQhduo3pZ87Bpg" target="_blank" rel="noopener">
+          📝 開啟 🍁廣島家庭購物清單 (Apple 備忘錄)
+        </a>
+      </div>
+
+      <div class="card">
+        <h3>📍 採購重點分佈</h3>
+        <h4>Day 5 傍晚 · 本通商店街</h4>
+        <div class="badge-row">
+          <span class="badge">大國藥妝（成藥）</span>
+          <span class="badge">唐吉訶德（零食美妝）</span>
+          <span class="badge">松本清（專櫃保養）</span>
+        </div>
+        <h4>Day 6 下午 · 永旺夢樂城府中店</h4>
+        <div class="badge-row">
+          <span class="badge">阿卡將本舖（童鞋童裝防踢被）</span>
+          <span class="badge">MUJI / UNIQLO</span>
+        </div>
+        <h4>Day 6 傍晚 · 廣島車站周邊</h4>
+        <div class="badge-row">
+          <span class="badge">Bic Camera（日系小家電）</span>
+          <span class="badge">ekie（紅葉饅頭/伴手禮）</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ D1 抵達 ============ -->
+    <div class="panel" id="c7">
+      <div class="banner-card">
+        <svg viewBox="0 0 400 118" xmlns="http://www.w3.org/2000/svg">
+          <defs><linearGradient id="g7" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#1E293B"/><stop offset="100%" stop-color="#C0392B"/>
+          </linearGradient></defs>
+          <rect width="400" height="118" fill="url(#g7)"/>
+          <path d="M40 70 L120 60 L280 40 L300 46 L150 70 L120 78 L40 76 Z" fill="#FFFFFF" opacity="0.8"/>
+        </svg>
+        <div class="banner-overlay">
+          <div class="kicker">DAY 1 · 10/18 (日)</div>
+          <h2>啟程抵達 · 進駐八丁堀</h2>
+        </div>
+      </div>
+      <div class="timeline">
+        <div class="t-item">
+          <div class="t-time">04:45</div>
+          <div class="t-title">三峽專車接送出發</div>
+          <div class="t-desc">預約單號 <span class="highlight-id">F15364988</span>，專車直達桃機二航廈</div>
+        </div>
+        <div class="t-item">
+          <div class="t-time">07:15 → 10:35</div>
+          <div class="t-title">CI112 班機起飛 ✈️ 抵達廣島</div>
+          <div class="t-desc">降落廣島機場（HIJ），領取行李與推車，從容泡奶整裝</div>
+          <span class="t-tag tag-key">華航直飛</span>
+          <br>
+          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=広島空港" target="_blank" rel="noopener">📍 導航 廣島機場</a>
+        </div>
+        <div class="t-item">
+          <div class="t-time">11:20</div>
+          <div class="t-title">搭乘利木津機場大巴</div>
+          <div class="t-desc">直達廣島站新幹線口，大行李進底艙，雙寶車上小憩</div>
+        </div>
+        <div class="t-item">
+          <div class="t-time">12:15</div>
+          <div class="t-title">廣島站內 ekie 商場午餐</div>
+          <div class="t-desc">免出站奔波，於商場平整無障礙動線內享用舒適午餐</div>
+          <br>
+          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=ekie 広島駅" target="_blank" rel="noopener">📍 導航 ekie 商場</a>
+        </div>
+        <div class="t-item">
+          <div class="t-time">14:30</div>
+          <div class="t-title">進駐八丁堀公寓 · 午後大補眠</div>
+          <div class="t-desc">轉乘廣電直達八丁堀站，全家躺平午睡充電，適應環境</div>
+          <br>
+          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=34.3949,132.4646" target="_blank" rel="noopener">📍 導航 公寓基地</a>
+        </div>
+        <div class="t-item">
+          <div class="t-time">18:00</div>
+          <div class="t-title">晚餐：【麗ちゃん】經典廣島燒</div>
+          <div class="t-desc">位於站內 ekie，全平整無障礙，推車直推入座</div>
+          <span class="t-tag tag-tip">現場候位</span>
+          <br>
+          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=麗ちゃん 広島" target="_blank" rel="noopener">📍 導航 麗ちゃん</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ D2 宮島 ============ -->
+    <div class="panel" id="c8">
+      <div class="banner-card">
+        <svg viewBox="0 0 400 118" xmlns="http://www.w3.org/2000/svg">
+          <defs><linearGradient id="g8" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#2563EB"/><stop offset="100%" stop-color="#0F172A"/>
+          </linearGradient></defs>
+          <rect width="400" height="118" fill="url(#g8)"/>
+          <rect x="180" y="20" width="10" height="70" fill="#C0392B"/>
+          <rect x="250" y="20" width="10" height="70" fill="#C0392B"/>
+          <rect x="170" y="24" width="100" height="12" fill="#C0392B"/>
+          <rect x="170" y="40" width="100" height="8" fill="#991B1B"/>
+          <path d="M0 88 Q100 78 200 88 T400 84 V118 H0 Z" fill="#1E3A8A" opacity="0.6"/>
+        </svg>
+        <div class="banner-overlay">
+          <div class="kicker">DAY 2 · 10/19 (一)</div>
+          <h2>神之島宮島 · 潮汐與海中鳥居</h2>
+        </div>
+      </div>
+      <div class="timeline">
+        <div class="t-item">
+          <div class="t-time">09:30</div>
+          <div class="t-title">廣電 2 號線直達宮島口</div>
+          <div class="t-desc">八丁堀站一車坐到底免轉乘，省去長輩走樓梯之辛勞</div>
+        </div>
+        <div class="t-item">
+          <div class="t-time">10:30</div>
+          <div class="t-title">搭乘 JR 無障礙渡輪登島</div>
+          <div class="t-desc">推車完全免收折，迎風遠眺海面與小鹿互動</div>
+        </div>
+        <div class="t-item">
+          <div class="t-time">11:00–13:00</div>
+          <div class="t-title">嚴島神社參拜（滿潮浮水鳥居）</div>
+          <div class="t-desc">全平整木棧道推車順暢，正值滿潮拍攝最美「海中鳥居」</div>
+          <span class="t-tag tag-key">最佳滿潮期</span>
+          <br>
+          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=厳島神社" target="_blank" rel="noopener">📍 導航 嚴島神社</a>
+        </div>
+        <div class="t-item">
+          <div class="t-time">14:00</div>
+          <div class="t-title">宮島水族館 (みやじマリン)</div>
+          <div class="t-desc">全館無障礙空調坡道，觀賞江豚微笑、企鵝遊行</div>
+          <br>
+          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=宮島水族館" target="_blank" rel="noopener">📍 導航 水族館</a>
+        </div>
+        <div class="t-item">
+          <div class="t-time">16:15</div>
+          <div class="t-title">回程渡輪（退潮沙灘全貌）</div>
+          <div class="t-desc">海水已大幅退去，可從岸上平視退潮鳥居壯觀基底</div>
+        </div>
+        <div class="t-item">
+          <div class="t-time">18:00</div>
+          <div class="t-title">晚餐：【孫悟空 黑毛和牛燒肉】</div>
+          <div class="t-desc">預約獨立隱密包廂，長輩吃得開心、安撫雙寶無拘束</div>
+          <span class="t-tag tag-key">已訂獨立包廂</span>
+          <br>
+          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=孫悟空 広島" target="_blank" rel="noopener">📍 導航 孫悟空燒肉</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ D3 探索 ============ -->
+    <div class="panel" id="c9">
+      <div class="banner-card">
+        <svg viewBox="0 0 400 118" xmlns="http://www.w3.org/2000/svg">
+          <defs><linearGradient id="g9" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#059669"/><stop offset="100%" stop-color="#1E293B"/>
+          </linearGradient></defs>
+          <rect width="400" height="118" fill="url(#g9)"/>
+          <rect x="60" y="30" width="18" height="60" fill="#FFFFFF" opacity="0.8"/>
+          <circle cx="69" cy="24" r="9" fill="#FFFFFF" opacity="0.8"/>
+          <rect x="230" y="45" width="90" height="45" rx="6" fill="#FFFFFF" opacity="0.8"/>
+        </svg>
+        <div class="banner-overlay">
+          <div class="kicker">DAY 3 · 10/20 (二)</div>
+          <h2>科學探索 · 紙鶴塔與大丸堂順行</h2>
+        </div>
+      </div>
+      <div class="timeline">
+        <div class="t-item">
+          <div class="t-time">09:30</div>
+          <div class="t-title">廣電電車至「原爆ドーム前」</div>
+          <div class="t-desc">自公寓門口出發，平穩前往市區西側園區</div>
+        </div>
+        <div class="t-item">
+          <div class="t-time">10:00</div>
+          <div class="t-title">5-Days 兒童文化科學館</div>
+          <div class="t-desc">週二正常開館！常設展完全免費，安全室內觸摸互動放電</div>
+          <br>
+          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=広島市こども文化科学館" target="_blank" rel="noopener">📍 導航 兒童科學館</a>
+        </div>
+        <div class="t-item">
+          <div class="t-time">11:35</div>
+          <div class="t-title">廣島紙鶴塔 (Orizuru Tower)</div>
+          <div class="t-desc">自科學館步行 3 分鐘即達，搭電梯上木質展望台遠眺祈福</div>
+          <br>
+          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=おりづるタワー" target="_blank" rel="noopener">📍 導航 紙鶴塔</a>
+        </div>
+        <div class="t-item">
+          <div class="t-time">12:35</div>
+          <div class="t-title">午餐：【大丸堂】（廣島燒村 4F）</div>
+          <div class="t-desc">沿「本通」有遮棚平道一路向東順走 10 分鐘，電梯直達！鐵板牛舌與熱炒豐富</div>
+          <span class="t-tag tag-tip">一路向東順行</span>
+          <br>
+          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=お好み村 大丸堂" target="_blank" rel="noopener">📍 導航 大丸堂</a>
+        </div>
+        <div class="t-item">
+          <div class="t-time">14:00</div>
+          <div class="t-title">步行 3 分鐘回八丁堀公寓午睡</div>
+          <div class="t-desc">大丸堂距八丁堀基地僅 300 公尺！吃飽免搭車，全家舒服午休</div>
+        </div>
+        <div class="t-item">
+          <div class="t-time">16:30</div>
+          <div class="t-title">廣島護國神社午後漫步</div>
+          <div class="t-desc">睡飽後散步至廣島城跡，清幽平坦，求取雙寶健康平安御守</div>
+          <br>
+          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=広島護国神社" target="_blank" rel="noopener">📍 導航 護國神社</a>
+        </div>
+        <div class="t-item">
+          <div class="t-time">18:15</div>
+          <div class="t-title">晚餐：【藥研堀 八昌】傳奇廣島燒</div>
+          <div class="t-desc">爸爸與姑姑 18:00 先排，媽媽長輩雙寶 18:30 入座享用排隊名店</div>
+          <span class="t-tag tag-tip">分流排隊戰術</span>
+          <br>
+          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=薬研堀八昌" target="_blank" rel="noopener">📍 導航 藥研堀八昌</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ D4 生態 ============ -->
+    <div class="panel" id="c10">
+      <div class="banner-card">
+        <svg viewBox="0 0 400 118" xmlns="http://www.w3.org/2000/svg">
+          <defs><linearGradient id="g10" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#15803D"/><stop offset="100%" stop-color="#065F46"/>
+          </linearGradient></defs>
+          <rect width="400" height="118" fill="url(#g10)"/>
+          <circle cx="120" cy="90" r="40" fill="#FFFFFF" opacity="0.2"/>
+          <circle cx="200" cy="80" r="55" fill="#FFFFFF" opacity="0.15"/>
+        </svg>
+        <div class="banner-overlay">
+          <div class="kicker">DAY 4 · 10/21 (三)</div>
+          <h2>自然生態 · 安佐動物公園與野餐</h2>
+        </div>
+      </div>
+      <div class="timeline">
+        <div class="t-item">
+          <div class="t-time">09:00</div>
+          <div class="t-title">廣電電車至廣島車站</div>
+          <div class="t-desc">出發前往廣島站前巴士轉運處</div>
+        </div>
+        <div class="t-item">
+          <div class="t-time">09:35</div>
+          <div class="t-title">搭乘廣電巴士直達動物園</div>
+          <div class="t-desc">免除轉乘，直達安佐動物公園大門口</div>
+        </div>
+        <div class="t-item">
+          <div class="t-time">10:30</div>
+          <div class="t-title">安佐動物公園 (週三正常開園)</div>
+          <div class="t-desc">全區無障礙推車通道，近距離看非洲象、長頸鹿與摸綿羊</div>
+          <br>
+          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=広島市安佐動物公園" target="_blank" rel="noopener">📍 導航 動物公園</a>
+        </div>
+        <div class="t-item">
+          <div class="t-time">12:30</div>
+          <div class="t-title">草地溫馨野餐</div>
+          <div class="t-desc">鋪上野餐墊享用便當，長輩與雙寶在大自然中放鬆用餐</div>
+        </div>
+        <div class="t-item">
+          <div class="t-time">15:00</div>
+          <div class="t-title">返回八丁堀公寓 · 洗烘衣物留白</div>
+          <div class="t-desc">長輩雙寶安靜午睡，媽媽姑姑利用公寓洗脫烘處理衣物</div>
+        </div>
+        <div class="t-item">
+          <div class="t-time">18:00</div>
+          <div class="t-title">晚餐：【釜飯 醉心 本店】廣島鄉土天花板</div>
+          <div class="t-desc">離公寓走路只要 4~5 分鐘！全館大電梯，現炊牡蠣釜飯軟綿</div>
+          <span class="t-tag tag-key">已訂位包廂</span>
+          <br>
+          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=醉心本店 広島" target="_blank" rel="noopener">📍 導航 醉心本店</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ D5 海景 ============ -->
+    <div class="panel" id="c11">
+      <div class="banner-card">
+        <svg viewBox="0 0 400 118" xmlns="http://www.w3.org/2000/svg">
+          <defs><linearGradient id="g11" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#0284C7"/><stop offset="100%" stop-color="#0F172A"/>
+          </linearGradient></defs>
+          <rect width="400" height="118" fill="url(#g11)"/>
+          <path d="M60 75 L60 55 L300 55 L320 75 Z" fill="#FFFFFF" opacity="0.8"/>
+        </svg>
+        <div class="banner-overlay">
+          <div class="kicker">DAY 5 · 10/22 (四)</div>
+          <h2>蔚藍海景 · 吳市大和艦與本通藥妝</h2>
+        </div>
+      </div>
+      <div class="timeline">
+        <div class="t-item">
+          <div class="t-time">09:45</div>
+          <div class="t-title">搭乘 JR 吳線快速列車</div>
+          <div class="t-desc">無障礙電梯上下月台，沿著瀨戶內海海岸線巡禮直達吳站</div>
+        </div>
+        <div class="t-item">
+          <div class="t-time">10:35</div>
+          <div class="t-title">大和博物館（週四正常營業）</div>
+          <div class="t-desc">下火車走遮棚平穩空橋直通展館，推車 100% 免扛</div>
+          <br>
+          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=大和ミュージアム" target="_blank" rel="noopener">📍 導航 大和博物館</a>
+        </div>
+        <div class="t-item">
+          <div class="t-time">12:30</div>
+          <div class="t-title">午餐：Youme Town 吳港邊景觀</div>
+          <div class="t-desc">品嚐知名海自咖哩，商場設施完善好換尿布</div>
+          <br>
+          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=ゆめタウン呉" target="_blank" rel="noopener">📍 導航 Youme Town 吳</a>
+        </div>
+        <div class="t-item">
+          <div class="t-time">15:01</div>
+          <div class="t-title">搭乘 JR 吳線返回八丁堀休息</div>
+          <div class="t-desc">雙寶車上補眠，長輩先回房小憩</div>
+        </div>
+        <div class="t-item">
+          <div class="t-time">16:00</div>
+          <div class="t-title">媽媽與姑姑｜本通商店街採購</div>
+          <div class="t-desc">步行 3 分鐘有遮棚商店街，大國藥妝、唐吉訶德免稅採購</div>
+          <br>
+          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=本通商店街 広島" target="_blank" rel="noopener">📍 導航 本通商店街</a>
+        </div>
+        <div class="t-item">
+          <div class="t-time">18:30</div>
+          <div class="t-title">晚餐：【和食さと】連鎖家庭餐廳</div>
+          <div class="t-desc">沙發卡座寬敞桌距大，多樣化和食滿足大人與孩子</div>
+          <span class="t-tag tag-tip">彈性前往</span>
+          <br>
+          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=和食さと 広島" target="_blank" rel="noopener">📍 導航 和食さと</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ D6 採購 ============ -->
+    <div class="panel" id="c12">
+      <div class="banner-card">
+        <svg viewBox="0 0 400 118" xmlns="http://www.w3.org/2000/svg">
+          <defs><linearGradient id="g12" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#D97706"/><stop offset="100%" stop-color="#7C2D12"/>
+          </linearGradient></defs>
+          <rect width="400" height="118" fill="url(#g12)"/>
+          <rect x="120" y="30" width="160" height="60" rx="4" fill="#FFFFFF" opacity="0.85"/>
+        </svg>
+        <div class="banner-overlay">
+          <div class="kicker">DAY 6 · 10/23 (五)</div>
+          <h2>名庭漫步 · 永旺阿卡將終極採購</h2>
+        </div>
+      </div>
+      <div class="timeline">
+        <div class="t-item">
+          <div class="t-time">09:45</div>
+          <div class="t-title">計程車直達「縮景園」</div>
+          <div class="t-desc">搭車約 5 分鐘，替長輩省力！長輩出示護照完全免費</div>
+          <br>
+          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=縮景園" target="_blank" rel="noopener">📍 導航 縮景園</a>
+        </div>
+        <div class="t-item">
+          <div class="t-time">10:00</div>
+          <div class="t-title">縮景園漫步餵錦鯉</div>
+          <div class="t-desc">地形平坦開闊，全家三代同堂合影留念</div>
+        </div>
+        <div class="t-item">
+          <div class="t-time">12:30</div>
+          <div class="t-title">永旺夢樂城廣島府中店 (AEON)</div>
+          <div class="t-desc">JR 1 站直達天神川。阿卡將本舖、MUJI、UNIQLO 一站購齊</div>
+          <br>
+          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=イオンモール広島府中" target="_blank" rel="noopener">📍 導航 永旺夢樂城</a>
+        </div>
+        <div class="t-item">
+          <div class="t-time">17:30</div>
+          <div class="t-title">廣島站 Bic Camera ＆ ekie 伴手禮</div>
+          <div class="t-desc">採購日系小家電，在 ekie 買齊炸紅葉饅頭與檸檬伴手禮</div>
+          <br>
+          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=ビックカメラ 広島駅前" target="_blank" rel="noopener">📍 導航 Bic Camera</a>
+        </div>
+        <div class="t-item">
+          <div class="t-time">18:30</div>
+          <div class="t-title">晚餐：廣島車站周邊居酒屋包廂</div>
+          <div class="t-desc">預訂獨立包廂，開懷享用美食，慶祝採購大成功</div>
+          <span class="t-tag tag-key">已訂包廂</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ D7 返航 ============ -->
+    <div class="panel" id="c13">
+      <div class="banner-card">
+        <svg viewBox="0 0 400 118" xmlns="http://www.w3.org/2000/svg">
+          <defs><linearGradient id="g13" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#C0392B"/><stop offset="100%" stop-color="#1E293B"/>
+          </linearGradient></defs>
+          <rect width="400" height="118" fill="url(#g13)"/>
+          <path d="M60 80 L140 65 L300 40 L316 46 L165 74 L140 84 L60 86 Z" fill="#FFFFFF" opacity="0.85"/>
+        </svg>
+        <div class="banner-overlay">
+          <div class="kicker">DAY 7 · 10/24 (六)</div>
+          <h2>順暢返航 · 08:35 關鍵巴士</h2>
+        </div>
+      </div>
+      <div class="timeline">
+        <div class="t-item">
+          <div class="t-time">07:00</div>
+          <div class="t-title">晨間行李封箱</div>
+          <div class="t-desc">檢查液體藥妝託運，雙寶換尿布餵奶，整理隨身登機安撫包</div>
+        </div>
+        <div class="t-item">
+          <div class="t-time">07:45</div>
+          <div class="t-title">退房出發前往廣島站</div>
+          <div class="t-desc">推行李步行至八丁堀站搭電車抵達廣島站新幹線口</div>
+        </div>
+        <div class="t-item">
+          <div class="t-time">08:35</div>
+          <div class="t-title">搭乘機場利木津大巴 🚌</div>
+          <div class="t-desc">🚨 全日唯一關鍵死線！大行李放底艙，全家舒適直達機場</div>
+          <span class="t-tag tag-key">關鍵核心時刻</span>
+          <br>
+          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=広島駅 リムジンバスのりば" target="_blank" rel="noopener">📍 導航 機場大巴站</a>
+        </div>
+        <div class="t-item">
+          <div class="t-time">09:30</div>
+          <div class="t-title">華航櫃檯 Check-in (CI113)</div>
+          <div class="t-desc">訂位代號 <span class="highlight-id">FFYVCX</span>，距關櫃有 1.5 小時餘裕！辦理推車 Gate Check-in</div>
+          <br>
+          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=広島空港" target="_blank" rel="noopener">📍 導航 廣島機場</a>
+        </div>
+        <div class="t-item">
+          <div class="t-time">11:40 → 13:20</div>
+          <div class="t-title">班機起飛 ✈️ 降落桃園機場</div>
+          <div class="t-desc">飛抵桃園機場第二航廈，提領行李與雙寶推車</div>
+        </div>
+        <div class="t-item">
+          <div class="t-time">13:20–14:10</div>
+          <div class="t-title">台灣接送專車機場接機</div>
+          <div class="t-desc">預約單號 <span class="highlight-id">F15364996</span>，專車直達三峽溫暖的家！</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer">You Family, Have a good vacation! ❤️ Scott You Ⓡ 專家團隊旗艦舒適版</div>
+
+</div>
+
+<!-- 協同購物清單 JavaScript (本地優先 + 智慧合併) -->
+<script>
+(function(){
+  var API = 'https://api.restful-api.dev/objects';
+  var LS_ID_KEY = 'you-family-shopping-list-id';
+  var LS_DATA_KEY = 'you-family-shopping-local-items';
+  var listId = null;
+  var isSyncing = false;
+  var pollTimer = null;
+
+  var SEED_ITEMS = [
+    '【本通】合利他命 EX Plus 270錠',
+    '【本通】EVE 止痛藥 / 感冒微粒',
+    '【本通】兒童專用眼藥水 / 防蚊貼片',
+    '【本通】唐吉訶德限定零食 / 保溫瓶',
+    '【永旺】阿卡將本舖：亦璇 3歲 機能童鞋',
+    '【永旺】阿卡將本舖：亦忻 10M 常溫副食品包',
+    '【永旺】阿卡將本舖：雙寶秋冬保暖防踢被',
+    '【永旺】全家秋冬服飾 (MUJI / UNIQLO)',
+    '【廣島站】Bic Camera 日系小家電',
+    '【廣島站】ekie 紅葉堂炸楓葉饅頭'
+  ];
+
+  var cache = { items: [] };
+
+  try {
+    listId = localStorage.getItem(LS_ID_KEY);
+    var savedItems = localStorage.getItem(LS_DATA_KEY);
+    if(savedItems){ cache.items = JSON.parse(savedItems); }
+  } catch(e){}
+
+  try {
+    var urlParams = new URLSearchParams(window.location.search);
+    var qList = urlParams.get('list');
+    if(!qList && window.location.hash){
+      var hashMatch = window.location.hash.match(/[#&]list=([^&]+)/);
+      if(hashMatch) qList = hashMatch[1];
+    }
+    if(qList){
+      listId = qList.trim();
+      localStorage.setItem(LS_ID_KEY, listId);
+    }
+  } catch(e){}
+
+  var onboard   = document.getElementById('collab-onboard');
+  var active    = document.getElementById('collab-active');
+  var shareCode = document.getElementById('share-code');
+  var statusEl  = document.getElementById('sync-status');
+  var listEl    = document.getElementById('item-list');
+  var newItem   = document.getElementById('new-item');
+  var joinInput = document.getElementById('join-code');
+
+  function timeNow(){
+    var d = new Date();
+    function pad(n){ return (n<10?'0':'')+n; }
+    return pad(d.getHours())+':'+pad(d.getMinutes());
+  }
+
+  function setStatus(t, color){
+    if(statusEl){
+      statusEl.textContent = t;
+      statusEl.style.color = color || 'var(--ink-muted)';
+    }
+  }
+
+  function saveLocal(){
+    try {
+      localStorage.setItem(LS_DATA_KEY, JSON.stringify(cache.items || []));
+      if(listId) localStorage.setItem(LS_ID_KEY, listId);
+    } catch(e){}
+  }
+
+  function showActive(){
+    if(onboard) onboard.style.display = 'none';
+    if(active) active.style.display  = 'block';
+    if(shareCode) shareCode.textContent = listId;
+  }
+
+  function showOnboard(){
+    if(active) active.style.display  = 'none';
+    if(onboard) onboard.style.display = 'block';
+  }
+
+  function render(){
+    if(!listEl) return;
+    listEl.innerHTML = '';
+    var items = cache.items || [];
+    if(items.length === 0){
+      var empty = document.createElement('li');
+      empty.className = 'collab-empty';
+      empty.textContent = '目前沒有品項，點擊「匯入推薦必買」或直接新增第一筆吧！';
+      listEl.appendChild(empty);
+      return;
+    }
+    items.forEach(function(item){
+      var li = document.createElement('li');
+      li.className = 'collab-item' + (item.checked ? ' checked' : '');
+
+      var cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = !!item.checked;
+      cb.addEventListener('change', function(){ toggleItem(item.id); });
+
+      var span = document.createElement('span');
+      span.className = 'collab-text';
+      span.textContent = item.text;
+
+      var del = document.createElement('button');
+      del.type = 'button';
+      del.className = 'collab-del';
+      del.setAttribute('aria-label', '刪除');
+      del.textContent = '✕';
+      del.addEventListener('click', function(){ deleteItem(item.id); });
+
+      li.appendChild(cb);
+      li.appendChild(span);
+      li.appendChild(del);
+      listEl.appendChild(li);
+    });
+  }
+
+  function normalize(raw){
+    if(!raw) return { items: [] };
+    if(Array.isArray(raw.items)) return raw;
+    if(raw.data && Array.isArray(raw.data.items)) return raw.data;
+    return { items: [] };
+  }
+
+  // 遠端拉取（智慧合併，保留本地新增項目）
+  function fetchList(silent){
+    if(!listId || isSyncing) return;
+    if(!silent) setStatus('🔄 同步中…');
+    fetch(API + '/' + listId)
+      .then(function(r){
+        if(!r.ok) throw new Error('not found');
+        return r.json();
+      })
+      .then(function(res){
+        var normalized = normalize(res);
+        var remoteItems = normalized.items || [];
+
+        var remoteMap = {};
+        remoteItems.forEach(function(it){ remoteMap[it.id] = it; });
+
+        var merged = remoteItems.slice();
+        (cache.items || []).forEach(function(localIt){
+          if(!remoteMap[localIt.id]){
+            merged.push(localIt);
+          } else {
+            localIt.checked = remoteMap[localIt.id].checked;
+          }
+        });
+
+        cache.items = merged;
+        saveLocal();
+        render();
+        setStatus('🟢 已連線同步 · ' + timeNow(), 'var(--moss)');
+      })
+      .catch(function(){
+        setStatus('🟡 離線暫存模式 · ' + timeNow(), 'var(--gold)');
+      });
+  }
+
+  // 遠端儲存
+  function saveList(){
+    saveLocal();
+    if(!listId) return;
+
+    isSyncing = true;
+    setStatus('💾 儲存中…');
+
+    fetch(API + '/' + listId, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: 'YouFamily_ShoppingList',
+        data: { items: cache.items }
+      })
+    })
+    .then(function(r){
+      if(!r.ok) throw new Error('save failed');
+      return r.json();
+    })
+    .then(function(){
+      setStatus('🟢 已儲存並同步 · ' + timeNow(), 'var(--moss)');
+      isSyncing = false;
+    })
+    .catch(function(){
+      setStatus('🟡 已保存在手機（離線模式）', 'var(--gold)');
+      isSyncing = false;
+    });
+  }
+
+  function addItem(text){
+    text = (text || '').trim();
+    if(!text) return;
+    cache.items = cache.items || [];
+    cache.items.push({
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      text: text,
+      checked: false
+    });
+    render();
+    saveList();
+  }
+
+  function toggleItem(id){
+    (cache.items || []).forEach(function(it){
+      if(it.id === id) it.checked = !it.checked;
+    });
+    render();
+    saveList();
+  }
+
+  function deleteItem(id){
+    cache.items = (cache.items || []).filter(function(it){ return it.id !== id; });
+    render();
+    saveList();
+  }
+
+  function seedDefaultItems(){
+    if(!confirm('確定要匯入行程推薦的 10 項必買品項嗎？')) return;
+    cache.items = cache.items || [];
+    SEED_ITEMS.forEach(function(txt){
+      var exists = cache.items.some(function(item){ return item.text === txt; });
+      if(!exists){
+        cache.items.push({
+          id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+          text: txt,
+          checked: false
+        });
+      }
+    });
+    render();
+    saveList();
+  }
+
+  function startPolling(){
+    if(pollTimer) clearInterval(pollTimer);
+    pollTimer = setInterval(function(){ fetchList(true); }, 10000);
+  }
+
+  function createList(){
+    setStatus('✨ 建立中…');
+    var initialItems = (cache.items && cache.items.length > 0) ? cache.items : [];
+    if(initialItems.length === 0){
+      SEED_ITEMS.forEach(function(txt){
+        initialItems.push({
+          id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+          text: txt,
+          checked: false
+        });
+      });
+    }
+
+    fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: 'YouFamily_ShoppingList',
+        data: { items: initialItems }
+      })
+    })
+    .then(function(r){
+      if(!r.ok) throw new Error('create failed');
+      return r.json();
+    })
+    .then(function(res){
+      if(!res.id){ throw new Error('no id in response body'); }
+      listId = res.id;
+      cache.items = initialItems;
+      saveLocal();
+      showActive();
+      render();
+      setStatus('🟢 已建立共享清單，可複製連結傳給家人！', 'var(--moss)');
+      startPolling();
+    })
+    .catch(function(){
+      alert('已自動為您切換至「手機本地模式」，您可正常記錄與打勾！');
+      listId = 'LOCAL_' + Date.now().toString(36);
+      cache.items = initialItems;
+      saveLocal();
+      showActive();
+      render();
+      setStatus('🟡 手機本地模式（正常保存中）', 'var(--gold)');
+    });
+  }
+
+  function joinList(code){
+    code = (code || '').trim();
+    if(!code){ alert('請輸入家人的分享代碼！'); return; }
+    listId = code;
+    saveLocal();
+    showActive();
+    render();
+    fetchList();
+    startPolling();
+  }
+
+  function resetList(){
+    if(confirm('確定要更換或重新綁定共享代碼嗎？')){
+      if(pollTimer) clearInterval(pollTimer);
+      listId = null;
+      try{ localStorage.removeItem(LS_ID_KEY); }catch(e){}
+      showOnboard();
+    }
+  }
+
+  document.getElementById('btn-create').addEventListener('click', createList);
+  document.getElementById('btn-join').addEventListener('click', function(){ joinList(joinInput.value); });
+  joinInput.addEventListener('keydown', function(e){ if(e.key === 'Enter'){ joinList(joinInput.value); } });
+
+  document.getElementById('btn-add').addEventListener('click', function(){ addItem(newItem.value); newItem.value = ''; });
+  newItem.addEventListener('keydown', function(e){ if(e.key === 'Enter'){ addItem(newItem.value); newItem.value = ''; } });
+
+  document.getElementById('btn-seed').addEventListener('click', seedDefaultItems);
+  document.getElementById('btn-reset').addEventListener('click', resetList);
+
+  document.getElementById('btn-copy').addEventListener('click', function(){
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(listId).then(function(){ alert('代碼已複製：' + listId); });
+    } else {
+      window.prompt('請複製代碼：', listId);
+    }
+  });
+
+  document.getElementById('btn-copy-link').addEventListener('click', function(){
+    var shareUrl = window.location.origin + window.location.pathname + '?list=' + listId + '#tab6';
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(shareUrl).then(function(){
+        alert('已複製 LINE 專屬連結！\n家人點開即可自動加入同一份清單。');
+      });
+    } else {
+      window.prompt('請複製專屬連結傳給家人：', shareUrl);
+    }
+  });
+
+  document.addEventListener('visibilitychange', function(){
+    if(document.visibilityState === 'visible' && listId && !isSyncing){
+      fetchList(true);
+    }
+  });
+
+  if(listId){
+    showActive();
+    render();
+    fetchList();
+    startPolling();
+  } else {
+    showOnboard();
+  }
+})();
+</script>
+
 </body>
 </html>
