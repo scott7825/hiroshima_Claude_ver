@@ -1403,7 +1403,8 @@
 <!-- 協同購物清單 JavaScript (本地優先 + 智慧合併) -->
 <script>
 (function(){
-  var API = 'https://api.restful-api.dev/objects';
+  // 使用穩定且完全開放 CORS 的 JSON 儲存端點
+  var API = 'https://jsonblob.com/api/jsonBlob';
   var LS_ID_KEY = 'you-family-shopping-list-id';
   var LS_DATA_KEY = 'you-family-shopping-local-items';
   var listId = null;
@@ -1424,6 +1425,11 @@
   ];
 
   var cache = { items: [] };
+
+  // 1. 環境診斷：若以 file:/// 開啟，提示需伺服器環境
+  if (window.location.protocol === 'file:') {
+    console.warn('[Sync Alert] 檢測到 file:/// 協定，瀏覽器將阻擋跨域連線。請發布至 GitHub Pages/Vercel 或以 localhost 伺服器開啟。');
+  }
 
   try {
     listId = localStorage.getItem(LS_ID_KEY);
@@ -1521,25 +1527,21 @@
     });
   }
 
-  function normalize(raw){
-    if(!raw) return { items: [] };
-    if(Array.isArray(raw.items)) return raw;
-    if(raw.data && Array.isArray(raw.data.items)) return raw.data;
-    return { items: [] };
-  }
-
+  // 遠端拉取
   function fetchList(silent){
     if(!listId || isSyncing || listId.startsWith('LOCAL_')) return;
     if(!silent) setStatus('🔄 同步中…');
     
-    fetch(API + '/' + listId)
+    fetch(API + '/' + listId, {
+      method: 'GET',
+      headers: { 'Accept': 'application/json' }
+    })
       .then(function(r){
-        if(!r.ok) throw new Error('not found');
+        if(!r.ok) throw new Error('fetch error: ' + r.status);
         return r.json();
       })
       .then(function(res){
-        var normalized = normalize(res);
-        var remoteItems = normalized.items || [];
+        var remoteItems = res.items || [];
         var remoteMap = {};
         remoteItems.forEach(function(it){ remoteMap[it.id] = it; });
 
@@ -1557,12 +1559,12 @@
         render();
         setStatus('🟢 已連線同步 · ' + timeNow(), 'var(--moss)');
       })
-      .catch(function(){
-        setStatus('🟡 離線暫存模式 · ' + timeNow(), 'var(--gold)');
+      .catch(function(err){
+        setStatus('🟡 離線暫存模式 (' + (window.location.protocol === 'file:' ? '需伺服器環境' : '待連線') + ')', 'var(--gold)');
       });
   }
 
-  var saveTimer = null;
+  // 遠端儲存
   function saveList(){
     saveLocal();
     if(!listId || listId.startsWith('LOCAL_')) return;
@@ -1572,14 +1574,11 @@
 
     fetch(API + '/' + listId, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: 'YouFamily_ShoppingList',
-        data: { items: cache.items }
-      })
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ items: cache.items })
     })
     .then(function(r){
-      if(!r.ok) throw new Error('save failed');
+      if(!r.ok) throw new Error('save error: ' + r.status);
       return r.json();
     })
     .then(function(){
@@ -1587,7 +1586,7 @@
       isSyncing = false;
     })
     .catch(function(){
-      setStatus('🟡 已保存在手機（離線模式）', 'var(--gold)');
+      setStatus('🟡 已保存在手機（待連線同步）', 'var(--gold)');
       isSyncing = false;
     });
   }
@@ -1639,11 +1638,16 @@
   function startPolling(){
     if(pollTimer) clearInterval(pollTimer);
     if(listId && !listId.startsWith('LOCAL_')){
-      pollTimer = setInterval(function(){ fetchList(true); }, 10000);
+      pollTimer = setInterval(function(){ fetchList(true); }, 8000);
     }
   }
 
+  // 建立新清單
   function createList(){
+    if (window.location.protocol === 'file:') {
+      alert('【重要提示】您目前是在電腦本地直接雙擊開啟 HTML (file:///)。\n瀏覽器會嚴格限制跨域連線，將自動切換為手機本地模式。\n\n若需多人線上同步，請將檔案上傳至 GitHub Pages、Vercel 等免費空間或本機伺服器開啟！');
+    }
+
     setStatus('✨ 建立連線中…');
     var initialItems = (cache.items && cache.items.length > 0) ? cache.items : [];
     if(initialItems.length === 0){
@@ -1658,34 +1662,33 @@
 
     fetch(API, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: 'YouFamily_ShoppingList',
-        data: { items: initialItems }
-      })
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ items: initialItems })
     })
     .then(function(r){
-      if(!r.ok) throw new Error('create failed');
-      return r.json();
+      if(!r.ok) throw new Error('create failed: ' + r.status);
+      var loc = r.headers.get('Location') || '';
+      var id = loc.split('/').filter(Boolean).pop();
+      if(!id) throw new Error('No Location ID found');
+      return { id: id };
     })
     .then(function(res){
-      if(!res.id){ throw new Error('no id in response body'); }
       listId = res.id;
       cache.items = initialItems;
       saveLocal();
       showActive();
       render();
-      setStatus('🟢 已建立共享清單，可複製連結傳給家人！', 'var(--moss)');
+      setStatus('🟢 已連線同步 · ' + timeNow(), 'var(--moss)');
       startPolling();
     })
-    .catch(function(){
-      alert('網路連線不穩，暫時切換至「手機本地模式」，您可正常記錄與打勾！');
+    .catch(function(err){
+      // 降級為本地安全模式
       listId = 'LOCAL_' + Date.now().toString(36);
       cache.items = initialItems;
       saveLocal();
       showActive();
       render();
-      setStatus('🟡 手機本地模式（正常保存中）', 'var(--gold)');
+      setStatus('🟡 手機本地模式 (' + (window.location.protocol === 'file:' ? '需伺服器環境' : '已離線保存') + ')', 'var(--gold)');
     });
   }
 
@@ -1704,7 +1707,10 @@
     if(confirm('確定要更換或解除綁定現在的清單代碼嗎？')){
       if(pollTimer) clearInterval(pollTimer);
       listId = null;
-      try{ localStorage.removeItem(LS_ID_KEY); }catch(e){}
+      try{ 
+        localStorage.removeItem(LS_ID_KEY); 
+        localStorage.removeItem(LS_DATA_KEY);
+      }catch(e){}
       showOnboard();
     }
   }
@@ -1751,13 +1757,12 @@
       fetchList();
       startPolling();
     } else {
-      setStatus('🟡 手機本地模式（正常保存中）', 'var(--gold)');
+      setStatus('🟡 手機本地模式 (' + (window.location.protocol === 'file:' ? '需伺服器環境' : '正常保存中') + ')', 'var(--gold)');
     }
   } else {
     showOnboard();
   }
 })();
 </script>
-
 </body>
 </html>
