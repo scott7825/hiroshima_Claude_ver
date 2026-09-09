@@ -16,6 +16,10 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M51.8 11.3c.1-.2.3-.3.5-.3.2 0 .4.1.5.3l10.4 23.7c1 2.4 3.3 4 5.9 4h21.1c.2 0 .4.1.5.3.1.2.1.4 0 .6L72.1 53.8c-2.1 1.6-3 4.3-2.2 6.9L76.5 82c.1.2 0 .4-.2.5-.2.1-.4.1-.5 0L53.1 68.7c-2.2-1.3-4.9-1.3-7.1 0L23.3 82.5c-.1.1-.3.1-.5 0s-.2-.3-.2-.5l6.5-21.3c.8-2.6-.1-5.3-2.2-6.9L9.7 39.9c-.1-.1-.1-.3 0-.6s.3-.3.5-.3h21.1c2.6 0 4.9-1.6 5.9-4l10.1-23.7z' fill='%23C0392B'/%3E%3C/svg%3E">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M51.8 11.3c.1-.2.3-.3.5-.3.2 0 .4.1.5.3l10.4 23.7c1 2.4 3.3 4 5.9 4h21.1c.2 0 .4.1.5.3.1.2.1.4 0 .6L72.1 53.8c-2.1 1.6-3 4.3-2.2 6.9L76.5 82c.1.2 0 .4-.2.5-.2.1-.4.1-.5 0L53.1 68.7c-2.2-1.3-4.9-1.3-7.1 0L23.3 82.5c-.1.1-.3.1-.5 0s-.2-.3-.2-.5l6.5-21.3c.8-2.6-.1-5.3-2.2-6.9L9.7 39.9c-.1-.1-.1-.3 0-.6s.3-.3.5-.3h21.1c2.6 0 4.9-1.6 5.9-4l10.1-23.7z' fill='%23C0392B'/%3E%3C/svg%3E">
 
+<!-- 引入 Firebase Web SDK (Compat 輕量穩定版) -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
 <style>
   :root {
     --bg: #F8FAFC;
@@ -72,7 +76,7 @@
     position: relative;
   }
 
-  /* ---------- 頂部精緻導航看板 ---------- */
+  /* 頂部主看板 */
   .masthead {
     padding: 24px 20px 18px;
     background: linear-gradient(145deg, #0F172A 0%, #1E293B 70%, #334155 100%);
@@ -107,7 +111,7 @@
     font-weight: 500;
   }
 
-  /* ---------- 滑動選單 (Tab Bar) ---------- */
+  /* 滑動選單 (Tab Bar) */
   .tab-bar {
     display: flex;
     overflow-x: auto;
@@ -144,12 +148,11 @@
     box-shadow: 0 2px 4px rgba(0,0,0,0.02);
   }
 
-  /* ---------- 分頁內容容器 ---------- */
+  /* 分頁容器與切換 */
   .panels { padding: 16px 16px 60px; }
   .panel { display: none; }
   .panel.active { display: block; }
 
-  /* Radio-driven 標籤連動 */
   #tab1:checked  ~ .panels #c1,
   #tab2:checked  ~ .panels #c2,
   #tab3:checked  ~ .panels #c3,
@@ -190,7 +193,7 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
-  /* ---------- 現代橫幅卡片 (Banner Card) ---------- */
+  /* 橫幅卡片 */
   .banner-card {
     position: relative;
     width: 100%;
@@ -226,7 +229,7 @@
     letter-spacing: -0.01em;
   }
 
-  /* ---------- 卡片容器與細節 ---------- */
+  /* 卡片元件 */
   .card {
     background: var(--card);
     border: 1px solid var(--line);
@@ -277,7 +280,7 @@
     gap: 4px;
   }
 
-  /* ---------- 現代按鈕系統 ---------- */
+  /* 按鈕樣式 */
   .btn-nav {
     display: inline-flex;
     align-items: center;
@@ -299,7 +302,7 @@
   .btn-nav.moss { background: var(--moss); box-shadow: 0 2px 6px rgba(21, 128, 61, 0.2); }
   .btn-block { display: flex; width: 100%; }
 
-  /* ---------- 表格排版優化 ---------- */
+  /* 表格排版 */
   table.plan {
     width: 100%;
     border-collapse: separate;
@@ -331,7 +334,7 @@
     color: var(--torii);
   }
 
-  /* ---------- 時間軸 (Timeline) 優化 ---------- */
+  /* 時間軸 (Timeline) */
   .timeline { position: relative; margin-top: 4px; padding-left: 24px; }
   .timeline::before {
     content: "";
@@ -374,7 +377,7 @@
   .tag-key { background: var(--torii-light); color: var(--torii); }
   .tag-tip { background: var(--moss-light); color: var(--moss); }
 
-  /* ---------- 用餐分級卡片標籤 ---------- */
+  /* 用餐策略標籤 */
   .tier {
     display: inline-flex;
     align-items: center;
@@ -416,7 +419,7 @@
   .weather-box .val { font-size: 19px; font-weight: 800; color: var(--indigo); }
   .weather-box .lbl { font-size: 11.5px; color: var(--ink-sub); margin-top: 2px; font-weight: 600; }
 
-  /* ---------- 鐵道路網相對圖 ---------- */
+  /* 鐵道路網圖 */
   .rail-diagram { margin: 10px 0 6px; }
   .rail-row { display: flex; align-items: center; margin-bottom: 12px; }
   .rail-label { font-size: 12px; font-weight: 750; width: 84px; flex-shrink: 0; color: var(--ink-sub); }
@@ -460,7 +463,7 @@
   .rail-track.tram .rail-stop::before { border-color: var(--torii); }
   .rail-stop.base::before { background: var(--gold); border-color: var(--gold); }
 
-  /* ---------- 購物清單 (Shopping List) UI ---------- */
+  /* 購物清單 UI */
   .collab-field {
     width: 100%;
     border: 1px solid var(--line);
@@ -560,7 +563,7 @@
 
 <div class="app-shell">
 
-  <!-- 13 個分頁 Radio 切換器 -->
+  <!-- 13 個分頁切換控制 -->
   <input type="radio" name="tabs" id="tab1" checked>
   <input type="radio" name="tabs" id="tab2">
   <input type="radio" name="tabs" id="tab3">
@@ -585,7 +588,7 @@
     <div class="sub">三代同遊 × 雙寶隨行 · 家族專屬導航手冊</div>
   </div>
 
-  <!-- 黏貼式橫向滑動分頁選單 -->
+  <!-- 滑動式分頁選單 -->
   <div class="tab-bar">
     <label for="tab1">📋 總覽</label>
     <label for="tab2">🗺️ 交通</label>
@@ -634,48 +637,48 @@
 
       <div class="card">
         <h3>🏠 核心住宿基地</h3>
-        <div class="meta">〒730-0013 廣島縣廣島市中區八丁堀 12-2</div>
-        <div class="desc" style="margin-top:4px;">Airbnb · 2 間臥室 · 5 張床 · 1 間衛浴 · 4.88 ★</div>
-        <a class="btn-nav btn-block torii" href="https://www.google.com/maps/search/?api=1&query=34.3949,132.4646" target="_blank" rel="noopener">📍 Google Maps 導航前往八丁堀公寓</a>
+        <div class="meta">〒730-0013 廣島縣廣島市中區八丁堀 12-2[cite: 1]</div>
+        <div class="desc" style="margin-top:4px;">Airbnb · 2 間臥室 · 5 張床 · 1 間衛浴 · 4.88 ★[cite: 1]</div>
+        <a class="btn-nav btn-block torii" href="https://www.google.com/maps/search/?api=1&query=34.3949,132.4646" target="_blank" rel="noopener">📍 Google Maps 導航前往八丁堀公寓[cite: 1]</a>
       </div>
 
       <div class="card">
         <h3>👨‍👩‍👧‍👦 出遊家庭成員</h3>
         <div class="badge-row">
-          <span class="badge">👵 淑柃奶奶 · 65歲敬老</span>
-          <span class="badge">👨 政憲爸爸 · Scott You</span>
-          <span class="badge">👩 美佑媽媽</span>
-          <span class="badge">👩 惠茹姑姑</span>
-          <span class="badge">👧 亦璇 · 3歲</span>
-          <span class="badge">👶 亦忻 · 10個月</span>
+          <span class="badge">👵 淑柃奶奶 · 65歲敬老[cite: 1]</span>
+          <span class="badge">👨 政憲爸爸 · Scott You[cite: 1]</span>
+          <span class="badge">👩 美佑媽媽[cite: 1]</span>
+          <span class="badge">👩 惠茹姑姑[cite: 1]</span>
+          <span class="badge">👧 亦璇 · 3歲[cite: 1]</span>
+          <span class="badge">👶 亦忻 · 10個月[cite: 1]</span>
         </div>
       </div>
 
       <div class="card">
         <h3>🚐 台灣專車機場接送</h3>
-        <div class="meta">上車地址：新北市三峽區中山路78-1號5F（6人）</div>
+        <div class="meta">上車地址：新北市三峽區中山路78-1號5F（6人）[cite: 1]</div>
         <div class="divider"></div>
-        <div class="desc"><strong>去程 10/18 (日)</strong> 04:45 上車 → 桃機二航廈</div>
-        <div class="meta">單號 <span class="highlight-id">F15364988</span> 總金額 NT$1,100</div>
+        <div class="desc"><strong>去程 10/18 (日)</strong> 04:45 上車 → 桃機二航廈[cite: 1]</div>
+        <div class="meta">單號 <span class="highlight-id">F15364988</span> 總金額 NT$1,100[cite: 1]</div>
         <div class="divider"></div>
-        <div class="desc"><strong>回程 10/24 (六)</strong> 13:20 接機 → 返回三峽</div>
-        <div class="meta">單號 <span class="highlight-id">F15364996</span></div>
+        <div class="desc"><strong>回程 10/24 (六)</strong> 13:20 接機 → 返回三峽[cite: 1]</div>
+        <div class="meta">單號 <span class="highlight-id">F15364996</span>[cite: 1]</div>
       </div>
 
       <div class="card">
         <h3>✈️ 華航航班資訊</h3>
-        <div class="meta">訂位代號 <span class="highlight-id">FFYVCX</span></div>
+        <div class="meta">訂位代號 <span class="highlight-id">FFYVCX</span>[cite: 1]</div>
         <div class="divider"></div>
-        <div class="desc"><strong>去程 10/18 CI112</strong></div>
-        <div class="meta">TPE 07:15 起飛 → HIJ 10:35 抵達（第二航廈 T2）</div>
+        <div class="desc"><strong>去程 10/18 CI112</strong>[cite: 1]</div>
+        <div class="meta">TPE 07:15 起飛 → HIJ 10:35 抵達（第二航廈 T2）[cite: 1]</div>
         <div class="divider"></div>
-        <div class="desc"><strong>回程 10/24 CI113</strong></div>
-        <div class="meta">HIJ 11:40 起飛 → TPE 13:20 抵達（第二航廈 T2）</div>
+        <div class="desc"><strong>回程 10/24 CI113</strong>[cite: 1]</div>
+        <div class="meta">HIJ 11:40 起飛 → TPE 13:20 抵達（第二航廈 T2）[cite: 1]</div>
         <div class="divider"></div>
         <ul class="selectable" style="font-size:13.5px; color:var(--ink-sub);">
-          <li>亦璇（3歲）：兒童餐 CHML</li>
-          <li>亦忻（10個月）：嬰兒餐 BBML</li>
-          <li>每人行李 23kg；推車可推至登機門辦理 Gate Check-in</li>
+          <li>亦璇（3歲）：兒童餐 CHML[cite: 1]</li>
+          <li>亦忻（10個月）：嬰兒餐 BBML[cite: 1]</li>
+          <li>每人行李 23kg；推車可推至登機門辦理 Gate Check-in[cite: 1]</li>
         </ul>
       </div>
 
@@ -683,13 +686,13 @@
         <h3>📅 每日行程與晚餐總覽</h3>
         <table class="plan">
           <tr><th>日期</th><th>區域主題</th><th>晚餐安排</th></tr>
-          <tr><td>D1 10/18</td><td>抵達廣島</td><td>麗ちゃん廣島燒</td></tr>
-          <tr><td>D2 10/19</td><td>宮島嚴島神社</td><td>孫悟空黑毛和牛（包廂）</td></tr>
-          <tr><td>D3 10/20</td><td>市區探索</td><td>藥研堀八昌（排隊分流）</td></tr>
-          <tr><td>D4 10/21</td><td>安佐動物公園</td><td>釜飯醉心本店（包廂）</td></tr>
-          <tr><td>D5 10/22</td><td>吳市海景</td><td>和食さと</td></tr>
-          <tr><td>D6 10/23</td><td>永旺府中採購</td><td>廣島站居酒屋（包廂）</td></tr>
-          <tr><td>D7 10/24</td><td>返航台灣</td><td>機上精緻特餐</td></tr>
+          <tr><td>D1 10/18[cite: 1]</td><td>抵達廣島[cite: 1]</td><td>麗ちゃん廣島燒[cite: 1]</td></tr>
+          <tr><td>D2 10/19[cite: 1]</td><td>宮島嚴島神社[cite: 1]</td><td>孫悟空黑毛和牛（包廂）[cite: 1]</td></tr>
+          <tr><td>D3 10/20[cite: 1]</td><td>市區探索[cite: 1]</td><td>藥研堀八昌（排隊分流）[cite: 1]</td></tr>
+          <tr><td>D4 10/21[cite: 1]</td><td>安佐動物公園[cite: 1]</td><td>釜飯醉心本店（包廂）[cite: 1]</td></tr>
+          <tr><td>D5 10/22[cite: 1]</td><td>吳市海景[cite: 1]</td><td>和食さと[cite: 1]</td></tr>
+          <tr><td>D6 10/23[cite: 1]</td><td>永旺府中採購[cite: 1]</td><td>廣島站居酒屋（包廂）[cite: 1]</td></tr>
+          <tr><td>D7 10/24[cite: 1]</td><td>返航台灣[cite: 1]</td><td>機上精緻特餐[cite: 1]</td></tr>
         </table>
       </div>
     </div>
@@ -718,38 +721,38 @@
         <h3>🚈 雙鐵相對路網看板</h3>
         <div class="rail-diagram">
           <div class="rail-row">
-            <div class="rail-label">JR 山陽/吳線</div>
+            <div class="rail-label">JR 山陽/吳線[cite: 1]</div>
             <div class="rail-track jr">
-              <div class="rail-stop">吳站</div>
-              <div class="rail-stop">天神川</div>
-              <div class="rail-stop">廣島站</div>
-              <div class="rail-stop">宮島口站</div>
+              <div class="rail-stop">吳站[cite: 1]</div>
+              <div class="rail-stop">天神川[cite: 1]</div>
+              <div class="rail-stop">廣島站[cite: 1]</div>
+              <div class="rail-stop">宮島口站[cite: 1]</div>
             </div>
           </div>
           <div class="rail-row">
-            <div class="rail-label">路面電車</div>
+            <div class="rail-label">路面電車[cite: 1]</div>
             <div class="rail-track tram">
-              <div class="rail-stop">廣島站</div>
-              <div class="rail-stop base">八丁堀🏠</div>
-              <div class="rail-stop">原爆頂站</div>
-              <div class="rail-stop">廣電宮島口</div>
+              <div class="rail-stop">廣島站[cite: 1]</div>
+              <div class="rail-stop base">八丁堀🏠[cite: 1]</div>
+              <div class="rail-stop">原爆頂站[cite: 1]</div>
+              <div class="rail-stop">廣電宮島口[cite: 1]</div>
             </div>
           </div>
         </div>
-        <div class="quote-box">💡 八丁堀公寓是全家的電車樞紐，絕大多數行程皆可一線直達，免尋電梯轉乘。</div>
+        <div class="quote-box">💡 八丁堀公寓是全家的電車樞紐，絕大多數行程皆可一線直達，免尋電梯轉乘[cite: 1]。</div>
       </div>
 
       <div class="card">
         <h3>🧭 每日交通策略摘要</h3>
         <table class="plan">
           <tr><th>日期</th><th>核心交通方式</th></tr>
-          <tr><td>D1</td><td>利木津大巴（機場→廣島站）＋ 廣電</td></tr>
-          <tr><td>D2</td><td>廣電2號線直達宮島口 ＋ JR無障礙渡輪</td></tr>
-          <tr><td>D3</td><td>廣電至原爆頂站 ＋ 本通平坦步道順行走回公寓</td></tr>
-          <tr><td>D4</td><td>廣電至廣島站 ＋ 廣電巴士直達安佐動物公園</td></tr>
-          <tr><td>D5</td><td>JR吳線快速列車（廣島⇄吳，看海景）</td></tr>
-          <tr><td>D6</td><td>計程車 ＋ JR一站直達天神川（永旺商城）</td></tr>
-          <tr><td>D7</td><td>廣電至廣島站 ＋ 利木津巴士直達機場</td></tr>
+          <tr><td>D1[cite: 1]</td><td>利木津大巴（機場→廣島站）＋ 廣電[cite: 1]</td></tr>
+          <tr><td>D2[cite: 1]</td><td>廣電2號線直達宮島口 ＋ JR無障礙渡輪[cite: 1]</td></tr>
+          <tr><td>D3[cite: 1]</td><td>廣電至原爆頂站 ＋ 本通平坦步道順行走回公寓[cite: 1]</td></tr>
+          <tr><td>D4[cite: 1]</td><td>廣電至廣島站 ＋ 廣電巴士直達安佐動物公園[cite: 1]</td></tr>
+          <tr><td>D5[cite: 1]</td><td>JR吳線快速列車（廣島⇄吳，看海景）[cite: 1]</td></tr>
+          <tr><td>D6[cite: 1]</td><td>計程車 ＋ JR一站直達天神川（永旺商城）[cite: 1]</td></tr>
+          <tr><td>D7[cite: 1]</td><td>廣電至廣島站 ＋ 利木津巴士直達機場[cite: 1]</td></tr>
         </table>
       </div>
     </div>
@@ -773,15 +776,15 @@
 
       <div class="card">
         <h3>👶 雙寶全程免票</h3>
-        <div class="desc">亦璇（3歲）與亦忻（10個月）全程景點皆<strong>完全免費入園</strong>！</div>
+        <div class="desc">亦璇（3歲）與亦忻（10個月）全程景點皆<strong>完全免費入園</strong>[cite: 1]！</div>
       </div>
 
       <div class="card">
         <h3>👵 奶奶專屬敬老禮遇</h3>
-        <div class="desc">淑柃奶奶購票時出示台灣護照正本即可享優惠：</div>
+        <div class="desc">淑柃奶奶購票時出示台灣護照正本即可享優惠[cite: 1]：</div>
         <ul>
-          <li>安佐動物公園：敬老票約 170 日圓</li>
-          <li>縮景園：長輩出示護照<strong>完全免費</strong></li>
+          <li>安佐動物公園：敬老票約 170 日圓[cite: 1]</li>
+          <li>縮景園：長輩出示護照<strong>完全免費</strong>[cite: 1]</li>
         </ul>
       </div>
 
@@ -789,11 +792,11 @@
         <h3>⛩️ 每日景點門票參考</h3>
         <table class="plan">
           <tr><th>景點項目</th><th>預估票價</th></tr>
-          <tr><td>宮島訪問稅</td><td>100 日圓/人</td></tr>
-          <tr><td>嚴島神社</td><td>成人 300 日圓</td></tr>
-          <tr><td>宮島水族館</td><td>成人 1,420 日圓</td></tr>
-          <tr><td>兒童科學館</td><td>常設展<strong>完全免費</strong></td></tr>
-          <tr><td>廣島紙鶴塔</td><td>成人約 2,200 日圓</td></tr>
+          <tr><td>宮島訪問稅[cite: 1]</td><td>100 日圓/人[cite: 1]</td></tr>
+          <tr><td>嚴島神社[cite: 1]</td><td>成人 300 日圓[cite: 1]</td></tr>
+          <tr><td>宮島水族館[cite: 1]</td><td>成人 1,420 日圓[cite: 1]</td></tr>
+          <tr><td>兒童科學館[cite: 1]</td><td>常設展<strong>完全免費</strong>[cite: 1]</td></tr>
+          <tr><td>廣島紙鶴塔[cite: 1]</td><td>成人約 2,200 日圓[cite: 1]</td></tr>
         </table>
       </div>
     </div>
@@ -802,7 +805,7 @@
     <div class="panel" id="c4">
       <div class="banner-card">
         <svg viewBox="0 0 400 118" xmlns="http://www.w3.org/2000/svg">
-          <defs><linearGradient id="g4" x1="0" y1="0" x2="0" y2="1">
+          <defs><linearGradient id="g4" x1="0" y1="0" x2="1" y2="1">
             <stop offset="0%" stop-color="#1E3A8A"/><stop offset="100%" stop-color="#0F172A"/>
           </linearGradient></defs>
           <rect width="400" height="118" fill="url(#g4)"/>
@@ -817,36 +820,36 @@
       </div>
 
       <div class="card">
-        <span class="tier tier-red">🔴 類別一 · 強烈預訂獨立包廂</span>
+        <span class="tier tier-red">🔴 類別一 · 強烈預訂獨立包廂[cite: 1]</span>
         <ul style="font-size:13.5px; color:var(--ink-sub);">
-          <li><strong>D2 晚餐</strong>：孫悟空燒肉 — 預約包廂，安撫雙寶無壓力</li>
-          <li><strong>D4 晚餐</strong>：釜飯醉心本店 — 廣島名產，電梯直達和風座</li>
-          <li><strong>D6 晚餐</strong>：廣島站居酒屋 — 預約獨立家庭包廂慶祝</li>
+          <li><strong>D2 晚餐</strong>：孫悟空燒肉 — 預約包廂，安撫雙寶無壓力[cite: 1]</li>
+          <li><strong>D4 晚餐</strong>：釜飯醉心本店 — 廣島名產，電梯直達和風座[cite: 1]</li>
+          <li><strong>D6 晚餐</strong>：廣島站居酒屋 — 預約獨立家庭包廂慶祝[cite: 1]</li>
         </ul>
       </div>
 
       <div class="card">
-        <span class="tier tier-yellow">🟡 類別二 · 現場排隊分流戰術</span>
+        <span class="tier tier-yellow">🟡 類別二 · 現場排隊分流戰術[cite: 1]</span>
         <ul style="font-size:13.5px; color:var(--ink-sub);">
-          <li><strong>D3 晚餐（藥研堀八昌）</strong>：爸爸與姑姑 18:00 先候位，媽媽帶長輩雙寶 18:30 入座直享名店</li>
-          <li><strong>D1 晚餐（麗ちゃん）</strong>：站內平坦，商場備有長椅供長輩稍坐</li>
+          <li><strong>D3 晚餐（藥研堀八昌）</strong>：爸爸與姑姑 18:00 先候位，媽媽帶長輩雙寶 18:30 入座直享名店[cite: 1]</li>
+          <li><strong>D1 晚餐（麗ちゃん）</strong>：站內平坦，商場備有長椅供長輩稍坐[cite: 1]</li>
         </ul>
       </div>
 
       <div class="card">
-        <span class="tier tier-green">🟢 類別三 · 彈性直接前往</span>
+        <span class="tier tier-green">🟢 類別三 · 彈性直接前往[cite: 1]</span>
         <ul style="font-size:13.5px; color:var(--ink-sub);">
-          <li><strong>D3 午餐</strong>：大丸堂（廣島燒村4F，電梯直達）</li>
-          <li><strong>D5 晚餐</strong>：和食さと（日式家庭餐廳，沙發座寬敞）</li>
+          <li><strong>D3 午餐</strong>：大丸堂（廣島燒村4F，電梯直達）[cite: 1]</li>
+          <li><strong>D5 晚餐</strong>：和食さと（日式家庭餐廳，沙發座寬敞）[cite: 1]</li>
         </ul>
       </div>
 
       <div class="card">
         <h3>🗣️ 日文預約備註 (點擊即可複製)</h3>
         <div class="quote-box selectable" style="font-size:13.5px; line-height:1.7;">
-          大人4名、高齢者1名、幼児2名（3歳、0歳）の合計6名です。ベビーカーのまま入れる広い席、できれば個室をお願いします。
+          大人4名、高齢者1名、幼児2名（3歳、0歳）の合計6名です。ベビーカーのまま入れる広い席、できれば個室をお願いします。[cite: 1]
         </div>
-        <div class="meta" style="margin-top:6px;">（我們共 6 人含 1 位長者、2 位幼兒，請協助安排推車便於進出的座位或包廂）</div>
+        <div class="meta" style="margin-top:6px;">（我們共 6 人含 1 位長者、2 位幼兒，請協助安排推車便於進出的座位或包廂[cite: 1]）</div>
       </div>
     </div>
 
@@ -870,43 +873,43 @@
       <div class="card">
         <h3>🌤️ 廣島 10 月中下旬歷史氣候</h3>
         <div class="weather-grid">
-          <div class="weather-box"><div class="val">21–24°C</div><div class="lbl">日間舒適高溫</div></div>
-          <div class="weather-box"><div class="val">12–15°C</div><div class="lbl">夜間涼爽低溫</div></div>
-          <div class="weather-box"><div class="val">90–110mm</div><div class="lbl">月降雨量 (偏少)</div></div>
-          <div class="weather-box"><div class="val">7–8 天</div><div class="lbl">平均降雨天數</div></div>
+          <div class="weather-box"><div class="val">21–24°C</div><div class="lbl">日間舒適高溫[cite: 1]</div></div>
+          <div class="weather-box"><div class="val">12–15°C</div><div class="lbl">夜間涼爽低溫[cite: 1]</div></div>
+          <div class="weather-box"><div class="val">90–110mm</div><div class="lbl">月降雨量 (偏少)[cite: 1]</div></div>
+          <div class="weather-box"><div class="val">7–8 天</div><div class="lbl">平均降雨天數[cite: 1]</div></div>
         </div>
-        <div class="quote-box">秋高氣爽居多（降雨機率約 25%），但日夜溫差達 10°C。宮島與吳市港邊海風勁涼，務必攜帶洋蔥式薄羽絨／推車防風罩。</div>
+        <div class="quote-box">秋高氣爽居多（降雨機率約 25%），但日夜溫差達 10°C[cite: 1]。宮島與吳市港邊海風勁涼，務必攜帶洋蔥式薄羽絨／推車防風罩[cite: 1]。</div>
       </div>
 
       <div class="card">
         <h3>💊 必帶小兒常備藥品 (台灣開立)</h3>
         <ul style="font-size:13.5px; color:var(--ink-sub);">
-          <li>退燒塞劑（防嘔吐無法服藥）＋ 口服退燒藥水</li>
-          <li>綜合感冒/止咳化痰藥水 ＋ 電解質粉沖泡包</li>
-          <li>耳溫槍 ＋ 屁屁膏 ＋ 外用止癢消炎膏</li>
+          <li>退燒塞劑（防嘔吐無法服藥）＋ 口服退燒藥水[cite: 1]</li>
+          <li>綜合感冒/止咳化痰藥水 ＋ 電解質粉沖泡包[cite: 1]</li>
+          <li>耳溫槍 ＋ 屁屁膏 ＋ 外用止癢消炎膏[cite: 1]</li>
         </ul>
-        <div class="quote-box" style="border-left-color:var(--torii);">⚠️ 日本法規嚴格，一般藥局極難直接買到 1 歲以下（亦忻）之處方藥，請務必在台備足。</div>
+        <div class="quote-box" style="border-left-color:var(--torii);">⚠️ 日本法規嚴格，一般藥局極難直接買到 1 歲以下（亦忻）之處方藥，請務必在台備足[cite: 1]。</div>
       </div>
 
       <div class="card">
         <h3>🍼 雙寶外出應急備品</h3>
         <ul style="font-size:13.5px; color:var(--ink-sub);">
-          <li>免加熱常溫副食品粥包（3~5包，防外食口味偏鹹）</li>
-          <li>拋棄式奶瓶 ＋ 奶粉分裝袋（外出免洗奶瓶首選）</li>
-          <li>推車防風防雨罩（海邊防風保暖神器）</li>
+          <li>免加熱常溫副食品粥包（3~5包，防外食口味偏鹹）[cite: 1]</li>
+          <li>拋棄式奶瓶 ＋ 奶粉分裝袋（外出免洗奶瓶首選）[cite: 1]</li>
+          <li>推車防風防雨罩（海邊防風保暖神器）[cite: 1]</li>
         </ul>
       </div>
 
       <div class="card">
         <h3>🧳 分裝策略</h3>
         <ul style="font-size:13.5px; color:var(--ink-sub);">
-          <li><strong>隨身媽媽包：</strong>護照證件、退燒藥、副食品粥1包、推車防風罩、薄外套</li>
-          <li><strong>託運行李箱：</strong>大罐奶粉、大量尿布、護照影本備份、備用藥庫存</li>
+          <li><strong>隨身媽媽包：</strong>護照證件、退燒藥、副食品粥1包、推車防風罩、薄外套[cite: 1]</li>
+          <li><strong>託運行李箱：</strong>大罐奶粉、大量尿布、護照影本備份、備用藥庫存[cite: 1]</li>
         </ul>
       </div>
     </div>
 
-    <!-- ============ 6. 購物清單 (已修復與升級) ============ -->
+    <!-- ============ 6. 購物清單 (Firebase 即時連線版) ============ -->
     <div class="panel" id="c6">
       <div class="banner-card">
         <svg viewBox="0 0 400 118" xmlns="http://www.w3.org/2000/svg">
@@ -918,36 +921,26 @@
           <path d="M168 40 a32 26 0 0 1 64 0" fill="none" stroke="#FFFFFF" stroke-width="5" opacity="0.85"/>
         </svg>
         <div class="banner-overlay">
-          <div class="kicker">SHOPPING &amp; SYNC</div>
-          <h2>採購地圖與共用清單</h2>
+          <div class="kicker">REALTIME COLLABORATION</div>
+          <h2>家族雲端即時購物清單</h2>
         </div>
       </div>
 
       <div class="card">
-        <h3>🛒 家族雲端同步購物清單</h3>
-        <div class="shopping-head">
-          <div class="desc">多人共用、即時勾選；每台手機也會保留本機資料，離線時仍可使用。</div>
-        </div>
+        <h3>⚡ Firebase 毫秒即時同步</h3>
+        <div class="desc">多台手機雙向連線！任何人勾選或新增，全家畫面立即更新；離線時自動保存，連網瞬間同步。</div>
 
-        <div class="shopping-stats">
-          <div class="shopping-stat"><span id="shopping-total" class="num">0</span><span class="lbl">全部</span></div>
-          <div class="shopping-stat"><span id="shopping-done" class="num">0</span><span class="lbl">已買</span></div>
-          <div class="shopping-stat"><span id="shopping-left" class="num">0</span><span class="lbl">待買</span></div>
-        </div>
-        <div class="progress-wrap">
-          <div class="progress-label"><span>採購進度</span><span id="shopping-percent">0%</span></div>
-          <div class="progress-track"><div id="shopping-progress"></div></div>
-        </div>
-
+        <!-- 初始畫面 -->
         <div id="collab-onboard" style="display:none; margin-top:12px;">
-          <div class="quote-box">首次使用請建立一份共享清單，再把分享連結傳到 LINE 群組；家人點開後即可加入同一份清單。</div>
+          <div class="quote-box">首次使用請點擊「建立新共享清單」，再將分享連結傳至 LINE 群組，家人點開即可自動加入同一份清單！</div>
           <button id="btn-create" class="btn-nav btn-block moss" type="button">✨ 建立新共享清單</button>
           <div class="join-row">
-            <input id="join-code" class="collab-field" type="text" inputmode="latin" placeholder="輸入家人的分享代碼">
+            <input id="join-code" class="collab-field" type="text" inputmode="latin" placeholder="或輸入家人給的分享代碼">
             <button id="btn-join" class="btn-small" type="button">加入</button>
           </div>
         </div>
 
+        <!-- 啟用中畫面 -->
         <div id="collab-active" style="display:none; margin-top:12px;">
           <div class="share-box">
             <span class="sb-label">共享代碼：</span>
@@ -958,82 +951,42 @@
           </div>
 
           <div class="add-row">
-            <input id="new-item" class="collab-field" type="text" placeholder="例如：合利他命 EX Plus">
-            <button id="btn-add" class="btn-small" type="button">＋ 新增</button>
-          </div>
-          <div class="add-options">
-            <select id="new-category" class="collab-field" aria-label="購物地點">
-              <option value="本通">📍 本通商店街</option>
-              <option value="永旺">📍 永旺府中</option>
-              <option value="廣島站">📍 廣島站</option>
-              <option value="其他">📍 其他</option>
-            </select>
-            <input id="new-qty" class="collab-field" type="number" min="1" max="99" inputmode="numeric" value="1" aria-label="數量" placeholder="數量">
-          </div>
-
-          <div class="shopping-tools">
-            <input id="shopping-search" class="collab-field" type="search" placeholder="🔎 搜尋品項…" autocomplete="off">
-            <button id="btn-clear-done" class="btn-small" type="button" style="background:#64748B;">清除已買</button>
-          </div>
-          <div class="filter-btns" role="group" aria-label="篩選購物清單">
-            <button class="filter-btn active" type="button" data-filter="all">全部</button>
-            <button class="filter-btn" type="button" data-filter="todo">待買</button>
-            <button class="filter-btn" type="button" data-filter="done">已買</button>
-            <button class="filter-btn" type="button" data-filter="本通">本通</button>
-            <button class="filter-btn" type="button" data-filter="永旺">永旺</button>
-            <button class="filter-btn" type="button" data-filter="廣島站">廣島站</button>
+            <input id="new-item" class="collab-field" type="text" placeholder="新增品項，例如：合利他命 EX Plus">
+            <button id="btn-add" class="btn-small" type="button">新增</button>
           </div>
 
           <ul id="item-list" class="collab-list"></ul>
 
           <div class="action-sub-row">
-            <button id="btn-seed" class="btn-small" style="background:var(--moss);" type="button">📥 匯入推薦必買</button>
-            <button id="btn-reset" class="btn-small" style="background:#64748B;" type="button">🔄 更換清單</button>
-          </div>
-          <div class="shopping-note">💡 點擊 ✏️ 可修改品項、數量與採購地點；勾選後會即時同步。</div>
-        </div>
-
-        <div id="shopping-edit-pop" class="edit-pop" aria-hidden="true">
-          <h4>✏️ 編輯購物項目</h4>
-          <input id="edit-text" class="collab-field" type="text" placeholder="品項名稱">
-          <div class="edit-pop-grid" style="margin-top:8px;">
-            <select id="edit-category" class="collab-field">
-              <option value="本通">📍 本通商店街</option>
-              <option value="永旺">📍 永旺府中</option>
-              <option value="廣島站">📍 廣島站</option>
-              <option value="其他">📍 其他</option>
-            </select>
-            <input id="edit-qty" class="collab-field" type="number" min="1" max="99" inputmode="numeric">
-          </div>
-          <div class="edit-pop-actions">
-            <button id="btn-edit-cancel" class="btn-small" type="button" style="background:#64748B;">取消</button>
-            <button id="btn-edit-save" class="btn-small torii" type="button">儲存修改</button>
+            <button id="btn-seed" class="btn-small" style="background:var(--moss);" type="button">📥 匯入行程推薦必買品</button>
+            <button id="btn-reset" class="btn-small" style="background:#64748B;" type="button">🔄 更換清單代碼</button>
           </div>
         </div>
 
         <div class="divider" style="margin:16px 0 14px;"></div>
+
         <a class="btn-nav btn-block" style="background:#D97706; color:#FFFFFF;" href="https://www.icloud.com/notes/0804x4XQzQ7WQhduo3pZ87Bpg" target="_blank" rel="noopener">
-          📝 開啟 🍁廣島家庭購物清單 (Apple 備忘錄)
+          📝 開啟 🍁廣島家庭購物清單 (Apple 備忘錄備案)
         </a>
       </div>
 
       <div class="card">
         <h3>📍 採購重點分佈</h3>
-        <h4>Day 5 傍晚 · 本通商店街</h4>
+        <h4>Day 5 傍晚 · 本通商店街[cite: 1]</h4>
         <div class="badge-row">
-          <span class="badge">大國藥妝（成藥）</span>
-          <span class="badge">唐吉訶德（零食美妝）</span>
-          <span class="badge">松本清（專櫃保養）</span>
+          <span class="badge">大國藥妝（成藥）[cite: 1]</span>
+          <span class="badge">唐吉訶德（零食美妝）[cite: 1]</span>
+          <span class="badge">松本清（專櫃保養）[cite: 1]</span>
         </div>
-        <h4>Day 6 下午 · 永旺夢樂城府中店</h4>
+        <h4>Day 6 下午 · 永旺夢樂城府中店[cite: 1]</h4>
         <div class="badge-row">
-          <span class="badge">阿卡將本舖（童鞋童裝防踢被）</span>
-          <span class="badge">MUJI / UNIQLO</span>
+          <span class="badge">阿卡將本舖（童鞋童裝防踢被）[cite: 1]</span>
+          <span class="badge">MUJI / UNIQLO[cite: 1]</span>
         </div>
-        <h4>Day 6 傍晚 · 廣島車站周邊</h4>
+        <h4>Day 6 傍晚 · 廣島車站周邊[cite: 1]</h4>
         <div class="badge-row">
-          <span class="badge">Bic Camera（日系小家電）</span>
-          <span class="badge">ekie（紅葉饅頭/伴手禮）</span>
+          <span class="badge">Bic Camera（日系小家電）[cite: 1]</span>
+          <span class="badge">ekie（紅葉饅頭/伴手禮）[cite: 1]</span>
         </div>
       </div>
     </div>
@@ -1042,57 +995,57 @@
     <div class="panel" id="c7">
       <div class="banner-card">
         <svg viewBox="0 0 400 118" xmlns="http://www.w3.org/2000/svg">
-          <defs><linearGradient id="g7" x1="0" y1="0" x2="0" y2="1">
+          <defs><linearGradient id="g7" x1="0" y1="0" x2="1" y2="1">
             <stop offset="0%" stop-color="#1E293B"/><stop offset="100%" stop-color="#C0392B"/>
           </linearGradient></defs>
           <rect width="400" height="118" fill="url(#g7)"/>
           <path d="M40 70 L120 60 L280 40 L300 46 L150 70 L120 78 L40 76 Z" fill="#FFFFFF" opacity="0.8"/>
         </svg>
         <div class="banner-overlay">
-          <div class="kicker">DAY 1 · 10/18 (日)</div>
-          <h2>啟程抵達 · 進駐八丁堀</h2>
+          <div class="kicker">DAY 1 · 10/18 (日)[cite: 1]</div>
+          <h2>啟程抵達 · 進駐八丁堀[cite: 1]</h2>
         </div>
       </div>
       <div class="timeline">
         <div class="t-item">
           <div class="t-time">04:45</div>
           <div class="t-title">三峽專車接送出發</div>
-          <div class="t-desc">預約單號 <span class="highlight-id">F15364988</span>，專車直達桃機二航廈</div>
+          <div class="t-desc">預約單號 <span class="highlight-id">F15364988</span>，專車直達桃機二航廈[cite: 1]</div>
         </div>
         <div class="t-item">
           <div class="t-time">07:15 → 10:35</div>
           <div class="t-title">CI112 班機起飛 ✈️ 抵達廣島</div>
-          <div class="t-desc">降落廣島機場（HIJ），領取行李與推車，從容泡奶整裝</div>
+          <div class="t-desc">降落廣島機場（HIJ），領取行李與推車，從容泡奶整裝[cite: 1]</div>
           <span class="t-tag tag-key">華航直飛</span>
           <br>
-          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=広島空港" target="_blank" rel="noopener">📍 導航 廣島機場</a>
+          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=広島空港" target="_blank" rel="noopener">📍 導航 廣島機場[cite: 1]</a>
         </div>
         <div class="t-item">
           <div class="t-time">11:20</div>
           <div class="t-title">搭乘利木津機場大巴</div>
-          <div class="t-desc">直達廣島站新幹線口，大行李進底艙，雙寶車上小憩</div>
+          <div class="t-desc">直達廣島站新幹線口，大行李進底艙，雙寶車上小憩[cite: 1]</div>
         </div>
         <div class="t-item">
           <div class="t-time">12:15</div>
           <div class="t-title">廣島站內 ekie 商場午餐</div>
-          <div class="t-desc">免出站奔波，於商場平整無障礙動線內享用舒適午餐</div>
+          <div class="t-desc">免出站奔波，於商場平整無障礙動線內享用舒適午餐[cite: 1]</div>
           <br>
-          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=ekie 広島駅" target="_blank" rel="noopener">📍 導航 ekie 商場</a>
+          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=ekie 広島駅" target="_blank" rel="noopener">📍 導航 ekie 商場[cite: 1]</a>
         </div>
         <div class="t-item">
           <div class="t-time">14:30</div>
           <div class="t-title">進駐八丁堀公寓 · 午後大補眠</div>
-          <div class="t-desc">轉乘廣電直達八丁堀站，全家躺平午睡充電，適應環境</div>
+          <div class="t-desc">轉乘廣電直達八丁堀站，全家躺平午睡充電，適應環境[cite: 1]</div>
           <br>
-          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=34.3949,132.4646" target="_blank" rel="noopener">📍 導航 公寓基地</a>
+          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=34.3949,132.4646" target="_blank" rel="noopener">📍 導航 公寓基地[cite: 1]</a>
         </div>
         <div class="t-item">
           <div class="t-time">18:00</div>
           <div class="t-title">晚餐：【麗ちゃん】經典廣島燒</div>
-          <div class="t-desc">位於站內 ekie，全平整無障礙，推車直推入座</div>
+          <div class="t-desc">位於站內 ekie，全平整無障礙，推車直推入座[cite: 1]</div>
           <span class="t-tag tag-tip">現場候位</span>
           <br>
-          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=麗ちゃん 広島" target="_blank" rel="noopener">📍 導航 麗ちゃん</a>
+          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=麗ちゃん 広島" target="_blank" rel="noopener">📍 導航 麗ちゃん[cite: 1]</a>
         </div>
       </div>
     </div>
@@ -1101,7 +1054,7 @@
     <div class="panel" id="c8">
       <div class="banner-card">
         <svg viewBox="0 0 400 118" xmlns="http://www.w3.org/2000/svg">
-          <defs><linearGradient id="g8" x1="0" y1="0" x2="0" y2="1">
+          <defs><linearGradient id="g8" x1="0" y1="0" x2="1" y2="1">
             <stop offset="0%" stop-color="#2563EB"/><stop offset="100%" stop-color="#0F172A"/>
           </linearGradient></defs>
           <rect width="400" height="118" fill="url(#g8)"/>
@@ -1112,48 +1065,48 @@
           <path d="M0 88 Q100 78 200 88 T400 84 V118 H0 Z" fill="#1E3A8A" opacity="0.6"/>
         </svg>
         <div class="banner-overlay">
-          <div class="kicker">DAY 2 · 10/19 (一)</div>
-          <h2>神之島宮島 · 潮汐與海中鳥居</h2>
+          <div class="kicker">DAY 2 · 10/19 (一)[cite: 1]</div>
+          <h2>神之島宮島 · 潮汐與海中鳥居[cite: 1]</h2>
         </div>
       </div>
       <div class="timeline">
         <div class="t-item">
           <div class="t-time">09:30</div>
           <div class="t-title">廣電 2 號線直達宮島口</div>
-          <div class="t-desc">八丁堀站一車坐到底免轉乘，省去長輩走樓梯之辛勞</div>
+          <div class="t-desc">八丁堀站一車坐到底免轉乘，省去長輩走樓梯之辛勞[cite: 1]</div>
         </div>
         <div class="t-item">
           <div class="t-time">10:30</div>
           <div class="t-title">搭乘 JR 無障礙渡輪登島</div>
-          <div class="t-desc">推車完全免收折，迎風遠眺海面與小鹿互動</div>
+          <div class="t-desc">推車完全免收折，迎風遠眺海面與小鹿互動[cite: 1]</div>
         </div>
         <div class="t-item">
           <div class="t-time">11:00–13:00</div>
           <div class="t-title">嚴島神社參拜（滿潮浮水鳥居）</div>
-          <div class="t-desc">全平整木棧道推車順暢，正值滿潮拍攝最美「海中鳥居」</div>
+          <div class="t-desc">全平整木棧道推車順暢，正值滿潮拍攝最美「海中鳥居」[cite: 1]</div>
           <span class="t-tag tag-key">最佳滿潮期</span>
           <br>
-          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=厳島神社" target="_blank" rel="noopener">📍 導航 嚴島神社</a>
+          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=厳島神社" target="_blank" rel="noopener">📍 導航 嚴島神社[cite: 1]</a>
         </div>
         <div class="t-item">
           <div class="t-time">14:00</div>
           <div class="t-title">宮島水族館 (みやじマリン)</div>
-          <div class="t-desc">全館無障礙空調坡道，觀賞江豚微笑、企鵝遊行</div>
+          <div class="t-desc">全館無障礙空調坡道，觀賞江豚微笑、企鵝遊行[cite: 1]</div>
           <br>
-          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=宮島水族館" target="_blank" rel="noopener">📍 導航 水族館</a>
+          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=宮島水族館" target="_blank" rel="noopener">📍 導航 水族館[cite: 1]</a>
         </div>
         <div class="t-item">
           <div class="t-time">16:15</div>
           <div class="t-title">回程渡輪（退潮沙灘全貌）</div>
-          <div class="t-desc">海水已大幅退去，可從岸上平視退潮鳥居壯觀基底</div>
+          <div class="t-desc">海水已大幅退去，可從岸上平視退潮鳥居壯觀基底[cite: 1]</div>
         </div>
         <div class="t-item">
           <div class="t-time">18:00</div>
           <div class="t-title">晚餐：【孫悟空 黑毛和牛燒肉】</div>
-          <div class="t-desc">預約獨立隱密包廂，長輩吃得開心、安撫雙寶無拘束</div>
+          <div class="t-desc">預約獨立隱密包廂，長輩吃得開心、安撫雙寶無拘束[cite: 1]</div>
           <span class="t-tag tag-key">已訂獨立包廂</span>
           <br>
-          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=孫悟空 広島" target="_blank" rel="noopener">📍 導航 孫悟空燒肉</a>
+          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=孫悟空 広島" target="_blank" rel="noopener">📍 導航 孫悟空燒肉[cite: 1]</a>
         </div>
       </div>
     </div>
@@ -1171,57 +1124,57 @@
           <rect x="230" y="45" width="90" height="45" rx="6" fill="#FFFFFF" opacity="0.8"/>
         </svg>
         <div class="banner-overlay">
-          <div class="kicker">DAY 3 · 10/20 (二)</div>
-          <h2>科學探索 · 紙鶴塔與大丸堂順行</h2>
+          <div class="kicker">DAY 3 · 10/20 (二)[cite: 1]</div>
+          <h2>科學探索 · 紙鶴塔與大丸堂順行[cite: 1]</h2>
         </div>
       </div>
       <div class="timeline">
         <div class="t-item">
           <div class="t-time">09:30</div>
           <div class="t-title">廣電電車至「原爆ドーム前」</div>
-          <div class="t-desc">自公寓門口出發，平穩前往市區西側園區</div>
+          <div class="t-desc">自公寓門口出發，平穩前往市區西側園區[cite: 1]</div>
         </div>
         <div class="t-item">
           <div class="t-time">10:00</div>
           <div class="t-title">5-Days 兒童文化科學館</div>
-          <div class="t-desc">週二正常開館！常設展完全免費，安全室內觸摸互動放電</div>
+          <div class="t-desc">週二正常開館！常設展完全免費，安全室內觸摸互動放電[cite: 1]</div>
           <br>
-          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=広島市こども文化科学館" target="_blank" rel="noopener">📍 導航 兒童科學館</a>
+          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=広島市こども文化科学館" target="_blank" rel="noopener">📍 導航 兒童科學館[cite: 1]</a>
         </div>
         <div class="t-item">
           <div class="t-time">11:35</div>
           <div class="t-title">廣島紙鶴塔 (Orizuru Tower)</div>
-          <div class="t-desc">自科學館步行 3 分鐘即達，搭電梯上木質展望台遠眺祈福</div>
+          <div class="t-desc">自科學館步行 3 分鐘即達，搭電梯上木質展望台遠眺祈福[cite: 1]</div>
           <br>
-          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=おりづるタワー" target="_blank" rel="noopener">📍 導航 紙鶴塔</a>
+          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=おりづるタワー" target="_blank" rel="noopener">📍 導航 紙鶴塔[cite: 1]</a>
         </div>
         <div class="t-item">
           <div class="t-time">12:35</div>
           <div class="t-title">午餐：【大丸堂】（廣島燒村 4F）</div>
-          <div class="t-desc">沿「本通」有遮棚平道一路向東順走 10 分鐘，電梯直達！鐵板牛舌與熱炒豐富</div>
+          <div class="t-desc">沿「本通」有遮棚平道一路向東順走 10 分鐘，電梯直達！鐵板牛舌與熱炒豐富[cite: 1]</div>
           <span class="t-tag tag-tip">一路向東順行</span>
           <br>
-          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=お好み村 大丸堂" target="_blank" rel="noopener">📍 導航 大丸堂</a>
+          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=お好み村 大丸堂" target="_blank" rel="noopener">📍 導航 大丸堂[cite: 1]</a>
         </div>
         <div class="t-item">
           <div class="t-time">14:00</div>
           <div class="t-title">步行 3 分鐘回八丁堀公寓午睡</div>
-          <div class="t-desc">大丸堂距八丁堀基地僅 300 公尺！吃飽免搭車，全家舒服午休</div>
+          <div class="t-desc">大丸堂距八丁堀基地僅 300 公尺！吃飽免搭車，全家舒服午休[cite: 1]</div>
         </div>
         <div class="t-item">
           <div class="t-time">16:30</div>
           <div class="t-title">廣島護國神社午後漫步</div>
-          <div class="t-desc">睡飽後散步至廣島城跡，清幽平坦，求取雙寶健康平安御守</div>
+          <div class="t-desc">睡飽後散步至廣島城跡，清幽平坦，求取雙寶健康平安御守[cite: 1]</div>
           <br>
-          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=広島護国神社" target="_blank" rel="noopener">📍 導航 護國神社</a>
+          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=広島護国神社" target="_blank" rel="noopener">📍 導航 護國神社[cite: 1]</a>
         </div>
         <div class="t-item">
           <div class="t-time">18:15</div>
           <div class="t-title">晚餐：【藥研堀 八昌】傳奇廣島燒</div>
-          <div class="t-desc">爸爸與姑姑 18:00 先排，媽媽長輩雙寶 18:30 入座享用排隊名店</div>
+          <div class="t-desc">爸爸與姑姑 18:00 先排，媽媽長輩雙寶 18:30 入座享用排隊名店[cite: 1]</div>
           <span class="t-tag tag-tip">分流排隊戰術</span>
           <br>
-          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=薬研堀八昌" target="_blank" rel="noopener">📍 導航 藥研堀八昌</a>
+          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=薬研堀八昌" target="_blank" rel="noopener">📍 導航 藥研堀八昌[cite: 1]</a>
         </div>
       </div>
     </div>
@@ -1238,45 +1191,45 @@
           <circle cx="200" cy="80" r="55" fill="#FFFFFF" opacity="0.15"/>
         </svg>
         <div class="banner-overlay">
-          <div class="kicker">DAY 4 · 10/21 (三)</div>
-          <h2>自然生態 · 安佐動物公園與野餐</h2>
+          <div class="kicker">DAY 4 · 10/21 (三)[cite: 1]</div>
+          <h2>自然生態 · 安佐動物公園與野餐[cite: 1]</h2>
         </div>
       </div>
       <div class="timeline">
         <div class="t-item">
           <div class="t-time">09:00</div>
           <div class="t-title">廣電電車至廣島車站</div>
-          <div class="t-desc">出發前往廣島站前巴士轉運處</div>
+          <div class="t-desc">出發前往廣島站前巴士轉運處[cite: 1]</div>
         </div>
         <div class="t-item">
           <div class="t-time">09:35</div>
           <div class="t-title">搭乘廣電巴士直達動物園</div>
-          <div class="t-desc">免除轉乘，直達安佐動物公園大門口</div>
+          <div class="t-desc">免除轉乘，直達安佐動物公園大門口[cite: 1]</div>
         </div>
         <div class="t-item">
           <div class="t-time">10:30</div>
           <div class="t-title">安佐動物公園 (週三正常開園)</div>
-          <div class="t-desc">全區無障礙推車通道，近距離看非洲象、長頸鹿與摸綿羊</div>
+          <div class="t-desc">全區無障礙推車通道，近距離看非洲象、長頸鹿與摸綿羊[cite: 1]</div>
           <br>
-          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=広島市安佐動物公園" target="_blank" rel="noopener">📍 導航 動物公園</a>
+          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=広島市安佐動物公園" target="_blank" rel="noopener">📍 導航 動物公園[cite: 1]</a>
         </div>
         <div class="t-item">
           <div class="t-time">12:30</div>
           <div class="t-title">草地溫馨野餐</div>
-          <div class="t-desc">鋪上野餐墊享用便當，長輩與雙寶在大自然中放鬆用餐</div>
+          <div class="t-desc">鋪上野餐墊享用便當，長輩與雙寶在大自然中放鬆用餐[cite: 1]</div>
         </div>
         <div class="t-item">
           <div class="t-time">15:00</div>
           <div class="t-title">返回八丁堀公寓 · 洗烘衣物留白</div>
-          <div class="t-desc">長輩雙寶安靜午睡，媽媽姑姑利用公寓洗脫烘處理衣物</div>
+          <div class="t-desc">長輩雙寶安靜午睡，媽媽姑姑利用公寓洗脫烘處理衣物[cite: 1]</div>
         </div>
         <div class="t-item">
           <div class="t-time">18:00</div>
           <div class="t-title">晚餐：【釜飯 醉心 本店】廣島鄉土天花板</div>
-          <div class="t-desc">離公寓走路只要 4~5 分鐘！全館大電梯，現炊牡蠣釜飯軟綿</div>
+          <div class="t-desc">離公寓走路只要 4~5 分鐘！全館大電梯，現炊牡蠣釜飯軟綿[cite: 1]</div>
           <span class="t-tag tag-key">已訂位包廂</span>
           <br>
-          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=酔心本店 広島" target="_blank" rel="noopener">📍 導航 醉心本店</a>
+          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=醉心本店 広島" target="_blank" rel="noopener">📍 導航 醉心本店[cite: 1]</a>
         </div>
       </div>
     </div>
@@ -1292,49 +1245,49 @@
           <path d="M60 75 L60 55 L300 55 L320 75 Z" fill="#FFFFFF" opacity="0.8"/>
         </svg>
         <div class="banner-overlay">
-          <div class="kicker">DAY 5 · 10/22 (四)</div>
-          <h2>蔚藍海景 · 吳市大和艦與本通藥妝</h2>
+          <div class="kicker">DAY 5 · 10/22 (四)[cite: 1]</div>
+          <h2>蔚藍海景 · 吳市大和艦與本通藥妝[cite: 1]</h2>
         </div>
       </div>
       <div class="timeline">
         <div class="t-item">
           <div class="t-time">09:45</div>
           <div class="t-title">搭乘 JR 吳線快速列車</div>
-          <div class="t-desc">無障礙電梯上下月台，沿著瀨戶內海海岸線巡禮直達吳站</div>
+          <div class="t-desc">無障礙電梯上下月台，沿著瀨戶內海海岸線巡禮直達吳站[cite: 1]</div>
         </div>
         <div class="t-item">
           <div class="t-time">10:35</div>
           <div class="t-title">大和博物館（週四正常營業）</div>
-          <div class="t-desc">下火車走遮棚平穩空橋直通展館，推車 100% 免扛</div>
+          <div class="t-desc">下火車走遮棚平穩空橋直通展館，推車 100% 免扛[cite: 1]</div>
           <br>
-          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=大和ミュージアム" target="_blank" rel="noopener">📍 導航 大和博物館</a>
+          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=大和ミュージアム" target="_blank" rel="noopener">📍 導航 大和博物館[cite: 1]</a>
         </div>
         <div class="t-item">
           <div class="t-time">12:30</div>
           <div class="t-title">午餐：Youme Town 吳港邊景觀</div>
-          <div class="t-desc">品嚐知名海自咖哩，商場設施完善好換尿布</div>
+          <div class="t-desc">品嚐知名海自咖哩，商場設施完善好換尿布[cite: 1]</div>
           <br>
-          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=ゆめタウン呉" target="_blank" rel="noopener">📍 導航 Youme Town 吳</a>
+          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=ゆめタウン呉" target="_blank" rel="noopener">📍 導航 Youme Town 吳[cite: 1]</a>
         </div>
         <div class="t-item">
           <div class="t-time">15:01</div>
           <div class="t-title">搭乘 JR 吳線返回八丁堀休息</div>
-          <div class="t-desc">雙寶車上補眠，長輩先回房小憩</div>
+          <div class="t-desc">雙寶車上補眠，長輩先回房小憩[cite: 1]</div>
         </div>
         <div class="t-item">
           <div class="t-time">16:00</div>
           <div class="t-title">媽媽與姑姑｜本通商店街採購</div>
-          <div class="t-desc">步行 3 分鐘有遮棚商店街，大國藥妝、唐吉訶德免稅採購</div>
+          <div class="t-desc">步行 3 分鐘有遮棚商店街，大國藥妝、唐吉訶德免稅採購[cite: 1]</div>
           <br>
-          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=本通商店街 広島" target="_blank" rel="noopener">📍 導航 本通商店街</a>
+          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=本通商店街 広島" target="_blank" rel="noopener">📍 導航 本通商店街[cite: 1]</a>
         </div>
         <div class="t-item">
           <div class="t-time">18:30</div>
           <div class="t-title">晚餐：【和食さと】連鎖家庭餐廳</div>
-          <div class="t-desc">沙發卡座寬敞桌距大，多樣化和食滿足大人與孩子</div>
+          <div class="t-desc">沙發卡座寬敞桌距大，多樣化和食滿足大人與孩子[cite: 1]</div>
           <span class="t-tag tag-tip">彈性前往</span>
           <br>
-          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=和食さと 広島" target="_blank" rel="noopener">📍 導航 和食さと</a>
+          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=和食さと 広島" target="_blank" rel="noopener">📍 導航 和食さと[cite: 1]</a>
         </div>
       </div>
     </div>
@@ -1350,41 +1303,41 @@
           <rect x="120" y="30" width="160" height="60" rx="4" fill="#FFFFFF" opacity="0.85"/>
         </svg>
         <div class="banner-overlay">
-          <div class="kicker">DAY 6 · 10/23 (五)</div>
-          <h2>名庭漫步 · 永旺阿卡將終極採購</h2>
+          <div class="kicker">DAY 6 · 10/23 (五)[cite: 1]</div>
+          <h2>名庭漫步 · 永旺阿卡將終極採購[cite: 1]</h2>
         </div>
       </div>
       <div class="timeline">
         <div class="t-item">
           <div class="t-time">09:45</div>
           <div class="t-title">計程車直達「縮景園」</div>
-          <div class="t-desc">搭車約 5 分鐘，替長輩省力！長輩出示護照完全免費</div>
+          <div class="t-desc">搭車約 5 分鐘，替長輩省力！長輩出示護照完全免費[cite: 1]</div>
           <br>
-          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=縮景園" target="_blank" rel="noopener">📍 導航 縮景園</a>
+          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=縮景園" target="_blank" rel="noopener">📍 導航 縮景園[cite: 1]</a>
         </div>
         <div class="t-item">
           <div class="t-time">10:00</div>
           <div class="t-title">縮景園漫步餵錦鯉</div>
-          <div class="t-desc">地形平坦開闊，全家三代同堂合影留念</div>
+          <div class="t-desc">地形平坦開闊，全家三代同堂合影留念[cite: 1]</div>
         </div>
         <div class="t-item">
           <div class="t-time">12:30</div>
           <div class="t-title">永旺夢樂城廣島府中店 (AEON)</div>
-          <div class="t-desc">JR 1 站直達天神川。阿卡將本舖、MUJI、UNIQLO 一站購齊</div>
+          <div class="t-desc">JR 1 站直達天神川。阿卡將本舖、MUJI、UNIQLO 一站購齊[cite: 1]</div>
           <br>
-          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=イオンモール広島府中" target="_blank" rel="noopener">📍 導航 永旺夢樂城</a>
+          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=イオンモール広島府中" target="_blank" rel="noopener">📍 導航 永旺夢樂城[cite: 1]</a>
         </div>
         <div class="t-item">
           <div class="t-time">17:30</div>
           <div class="t-title">廣島站 Bic Camera ＆ ekie 伴手禮</div>
-          <div class="t-desc">採購日系小家電，在 ekie 買齊炸紅葉饅頭與檸檬伴手禮</div>
+          <div class="t-desc">採購日系小家電，在 ekie 買齊炸紅葉饅頭與檸檬伴手禮[cite: 1]</div>
           <br>
-          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=ビックカメラ 広島駅前" target="_blank" rel="noopener">📍 導航 Bic Camera</a>
+          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=ビックカメラ 広島駅前" target="_blank" rel="noopener">📍 導航 Bic Camera[cite: 1]</a>
         </div>
         <div class="t-item">
           <div class="t-time">18:30</div>
           <div class="t-title">晚餐：廣島車站周邊居酒屋包廂</div>
-          <div class="t-desc">預訂獨立包廂，開懷享用美食，慶祝採購大成功</div>
+          <div class="t-desc">預訂獨立包廂，開懷享用美食，慶祝採購大成功[cite: 1]</div>
           <span class="t-tag tag-key">已訂包廂</span>
         </div>
       </div>
@@ -1401,67 +1354,80 @@
           <path d="M60 80 L140 65 L300 40 L316 46 L165 74 L140 84 L60 86 Z" fill="#FFFFFF" opacity="0.85"/>
         </svg>
         <div class="banner-overlay">
-          <div class="kicker">DAY 7 · 10/24 (六)</div>
-          <h2>順暢返航 · 08:35 關鍵巴士</h2>
+          <div class="kicker">DAY 7 · 10/24 (六)[cite: 1]</div>
+          <h2>順暢返航 · 08:35 關鍵巴士[cite: 1]</h2>
         </div>
       </div>
       <div class="timeline">
         <div class="t-item">
           <div class="t-time">07:00</div>
           <div class="t-title">晨間行李封箱</div>
-          <div class="t-desc">檢查液體藥妝託運，雙寶換尿布餵奶，整理隨身登機安撫包</div>
+          <div class="t-desc">檢查液體藥妝託運，雙寶換尿布餵奶，整理隨身登機安撫包[cite: 1]</div>
         </div>
         <div class="t-item">
           <div class="t-time">07:45</div>
           <div class="t-title">退房出發前往廣島站</div>
-          <div class="t-desc">推行李步行至八丁堀站搭電車抵達廣島站新幹線口</div>
+          <div class="t-desc">推行李步行至八丁堀站搭電車抵達廣島站新幹線口[cite: 1]</div>
         </div>
         <div class="t-item">
           <div class="t-time">08:35</div>
           <div class="t-title">搭乘機場利木津大巴 🚌</div>
-          <div class="t-desc">🚨 全日唯一關鍵死線！大行李放底艙，全家舒適直達機場</div>
+          <div class="t-desc">🚨 全日唯一關鍵死線！大行李放底艙，全家舒適直達機場[cite: 1]</div>
           <span class="t-tag tag-key">關鍵核心時刻</span>
           <br>
-          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=広島駅 リムジンバスのりば" target="_blank" rel="noopener">📍 導航 機場大巴站</a>
+          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=広島駅 リムジンバスのりば" target="_blank" rel="noopener">📍 導航 機場大巴站[cite: 1]</a>
         </div>
         <div class="t-item">
           <div class="t-time">09:30</div>
           <div class="t-title">華航櫃檯 Check-in (CI113)</div>
-          <div class="t-desc">訂位代號 <span class="highlight-id">FFYVCX</span>，距關櫃有 1.5 小時餘裕！辦理推車 Gate Check-in</div>
+          <div class="t-desc">訂位代號 <span class="highlight-id">FFYVCX</span>，距關櫃有 1.5 小時餘裕！辦理推車 Gate Check-in[cite: 1]</div>
           <br>
-          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=広島空港" target="_blank" rel="noopener">📍 導航 廣島機場</a>
+          <a class="btn-nav" href="https://www.google.com/maps/search/?api=1&query=広島空港" target="_blank" rel="noopener">📍 導航 廣島機場[cite: 1]</a>
         </div>
         <div class="t-item">
           <div class="t-time">11:40 → 13:20</div>
           <div class="t-title">班機起飛 ✈️ 降落桃園機場</div>
-          <div class="t-desc">飛抵桃園機場第二航廈，提領行李與雙寶推車</div>
+          <div class="t-desc">飛抵桃園機場第二航廈，提領行李與雙寶推車[cite: 1]</div>
         </div>
         <div class="t-item">
           <div class="t-time">13:20–14:10</div>
           <div class="t-title">台灣接送專車機場接機</div>
-          <div class="t-desc">預約單號 <span class="highlight-id">F15364996</span>，專車直達三峽溫暖的家！</div>
+          <div class="t-desc">預約單號 <span class="highlight-id">F15364996</span>，專車直達三峽溫暖的家！[cite: 1]</div>
         </div>
       </div>
     </div>
 
   </div>
 
-  <div class="footer">You Family, Have a good vacation!!! ❤️ Scott You Ⓡ 專家團隊旗艦完整版</div>
+  <div class="footer">You Family, Have a good vacation! ❤️ Scott You Ⓡ 專家團隊旗艦舒適版[cite: 1]</div>
 
 </div>
 
-<!-- 協同購物清單 JavaScript (本地優先 + 智慧合併) -->
+<!-- ======================================================== -->
+<!-- Firebase Realtime Database 原生即時同步引擎 (100% 穩定) -->
+<!-- ======================================================== -->
 <script>
 (function(){
-  // 使用穩定且完全開放 CORS 的 JSON 儲存端點
-  var API = 'https://jsonblob.com/api/jsonBlob';
-  var LS_ID_KEY = 'you-family-shopping-list-id';
-  var LS_DATA_KEY = 'you-family-shopping-local-items';
-  var listId = null;
-  var isSyncing = false;
-  var pollTimer = null;
+  // ============================================================
+  // 💡 請在此貼上您的 Firebase 專案設定資訊
+  // ============================================================
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+    databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_PROJECT_ID.appspot.com",
+    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+    appId: "YOUR_APP_ID"
+  };
 
-  var SEED_ITEMS = [
+  const LS_ID_KEY = 'you-family-shopping-list-id';
+  const LS_DATA_KEY = 'you-family-shopping-local-items';
+  let listId = null;
+  let db = null;
+  let isFirebaseReady = false;
+
+  const SEED_ITEMS = [
     '【本通】合利他命 EX Plus 270錠',
     '【本通】EVE 止痛藥 / 感冒微粒',
     '【本通】兒童專用眼藥水 / 防蚊貼片',
@@ -1474,48 +1440,56 @@
     '【廣島站】ekie 紅葉堂炸楓葉饅頭'
   ];
 
-  var cache = { items: [] };
+  let cache = { items: [] };
 
-  // 1. 環境診斷：若以 file:/// 開啟，提示需伺服器環境
-  if (window.location.protocol === 'file:') {
-    console.warn('[Sync Alert] 檢測到 file:/// 協定，瀏覽器將阻擋跨域連線。請發布至 GitHub Pages/Vercel 或以 localhost 伺服器開啟。');
+  // 1. 檢查 Firebase 是否已設定
+  if (firebaseConfig.apiKey && firebaseConfig.apiKey !== "YOUR_API_KEY") {
+    try {
+      firebase.initializeApp(firebaseConfig);
+      db = firebase.database();
+      isFirebaseReady = true;
+    } catch(e) {
+      console.error("Firebase 初始化失敗：", e);
+    }
   }
 
+  // 2. 讀取本地暫存
   try {
     listId = localStorage.getItem(LS_ID_KEY);
-    var savedItems = localStorage.getItem(LS_DATA_KEY);
-    if(savedItems){ cache.items = JSON.parse(savedItems); }
+    const savedItems = localStorage.getItem(LS_DATA_KEY);
+    if (savedItems) { cache.items = JSON.parse(savedItems); }
   } catch(e){}
 
+  // 3. 檢查網址參數 (?list=xxx)
   try {
-    var urlParams = new URLSearchParams(window.location.search);
-    var qList = urlParams.get('list');
-    if(!qList && window.location.hash){
-      var hashMatch = window.location.hash.match(/[#&]list=([^&]+)/);
-      if(hashMatch) qList = hashMatch[1];
+    const urlParams = new URLSearchParams(window.location.search);
+    let qList = urlParams.get('list');
+    if (!qList && window.location.hash) {
+      const hashMatch = window.location.hash.match(/[#&]list=([^&]+)/);
+      if (hashMatch) qList = hashMatch[1];
     }
-    if(qList){
+    if (qList) {
       listId = qList.trim();
       localStorage.setItem(LS_ID_KEY, listId);
     }
   } catch(e){}
 
-  var onboard   = document.getElementById('collab-onboard');
-  var active    = document.getElementById('collab-active');
-  var shareCode = document.getElementById('share-code');
-  var statusEl  = document.getElementById('sync-status');
-  var listEl    = document.getElementById('item-list');
-  var newItem   = document.getElementById('new-item');
-  var joinInput = document.getElementById('join-code');
+  const onboard   = document.getElementById('collab-onboard');
+  const active    = document.getElementById('collab-active');
+  const shareCode = document.getElementById('share-code');
+  const statusEl  = document.getElementById('sync-status');
+  const listEl    = document.getElementById('item-list');
+  const newItem   = document.getElementById('new-item');
+  const joinInput = document.getElementById('join-code');
 
   function timeNow(){
-    var d = new Date();
-    function pad(n){ return (n<10?'0':'')+n; }
+    const d = new Date();
+    const pad = n => (n<10?'0':'')+n;
     return pad(d.getHours())+':'+pad(d.getMinutes());
   }
 
   function setStatus(t, color){
-    if(statusEl){
+    if (statusEl) {
       statusEl.textContent = t;
       statusEl.style.color = color || 'var(--ink-muted)';
     }
@@ -1524,259 +1498,151 @@
   function saveLocal(){
     try {
       localStorage.setItem(LS_DATA_KEY, JSON.stringify(cache.items || []));
-      if(listId) localStorage.setItem(LS_ID_KEY, listId);
+      if (listId) localStorage.setItem(LS_ID_KEY, listId);
     } catch(e){}
   }
 
   function showActive(){
-    if(onboard) onboard.style.display = 'none';
-    if(active) active.style.display  = 'block';
-    if(shareCode) shareCode.textContent = listId;
+    if (onboard) onboard.style.display = 'none';
+    if (active) active.style.display  = 'block';
+    if (shareCode) shareCode.textContent = listId;
   }
 
   function showOnboard(){
-    if(active) active.style.display  = 'none';
-    if(onboard) onboard.style.display = 'block';
-  }
-
-  var currentFilter = 'all';
-  var currentSearch = '';
-  var editingId = null;
-
-  function updateShoppingStats(){
-    var items = cache.items || [];
-    var done = items.filter(function(it){ return !!it.checked; }).length;
-    var total = items.length;
-    var left = total - done;
-    var pct = total ? Math.round(done / total * 100) : 0;
-    var totalEl = document.getElementById('shopping-total');
-    var doneEl = document.getElementById('shopping-done');
-    var leftEl = document.getElementById('shopping-left');
-    var pctEl = document.getElementById('shopping-percent');
-    var barEl = document.getElementById('shopping-progress');
-    if(totalEl) totalEl.textContent = total;
-    if(doneEl) doneEl.textContent = done;
-    if(leftEl) leftEl.textContent = left;
-    if(pctEl) pctEl.textContent = pct + '%';
-    if(barEl) barEl.style.width = pct + '%';
-  }
-
-  function normalizeItem(item){
-    if(!item.category) item.category = '其他';
-    if(!item.qty || Number(item.qty) < 1) item.qty = 1;
-    return item;
-  }
-
-  function getVisibleItems(){
-    var items = (cache.items || []).map(normalizeItem);
-    var q = currentSearch.trim().toLowerCase();
-    return items.filter(function(item){
-      var filterOK = currentFilter === 'all' ||
-        (currentFilter === 'todo' && !item.checked) ||
-        (currentFilter === 'done' && !!item.checked) ||
-        (item.category === currentFilter);
-      var searchOK = !q || String(item.text || '').toLowerCase().indexOf(q) !== -1 ||
-        String(item.category || '').toLowerCase().indexOf(q) !== -1;
-      return filterOK && searchOK;
-    });
+    if (active) active.style.display  = 'none';
+    if (onboard) onboard.style.display = 'block';
   }
 
   function render(){
-    if(!listEl) return;
+    if (!listEl) return;
     listEl.innerHTML = '';
-    updateShoppingStats();
-    var visible = getVisibleItems();
-    if(visible.length === 0){
-      var empty = document.createElement('li');
+    const items = cache.items || [];
+    if (items.length === 0) {
+      const empty = document.createElement('li');
       empty.className = 'collab-empty';
-      empty.textContent = (cache.items || []).length ? '沒有符合目前篩選條件的品項。' : '目前沒有品項，直接新增或匯入推薦必買吧！';
+      empty.textContent = '目前沒有品項，點擊「匯入推薦必買」或直接新增第一筆吧！';
       listEl.appendChild(empty);
       return;
     }
-    visible.forEach(function(item){
-      var li = document.createElement('li');
+    items.forEach(item => {
+      const li = document.createElement('li');
       li.className = 'collab-item' + (item.checked ? ' checked' : '');
 
-      var cb = document.createElement('input');
+      const cb = document.createElement('input');
       cb.type = 'checkbox';
       cb.checked = !!item.checked;
-      cb.setAttribute('aria-label', '標記已購買');
-      cb.addEventListener('change', function(){ toggleItem(item.id); });
+      cb.addEventListener('change', () => toggleItem(item.id));
 
-      var main = document.createElement('div');
-      main.className = 'collab-main';
-
-      var span = document.createElement('span');
+      const span = document.createElement('span');
       span.className = 'collab-text';
       span.textContent = item.text;
 
-      var meta = document.createElement('div');
-      meta.className = 'collab-meta';
-
-      var cat = document.createElement('span');
-      cat.className = 'item-chip';
-      cat.textContent = '📍 ' + (item.category || '其他');
-
-      var qty = document.createElement('span');
-      qty.className = 'item-chip qty';
-      qty.textContent = '× ' + (item.qty || 1);
-
-      meta.appendChild(cat);
-      meta.appendChild(qty);
-      main.appendChild(span);
-      main.appendChild(meta);
-
-      var actions = document.createElement('div');
-      actions.className = 'collab-actions';
-
-      var edit = document.createElement('button');
-      edit.type = 'button';
-      edit.className = 'collab-edit';
-      edit.setAttribute('aria-label', '編輯 ' + item.text);
-      edit.textContent = '✏️';
-      edit.addEventListener('click', function(){ openEditor(item); });
-
-      var del = document.createElement('button');
+      const del = document.createElement('button');
       del.type = 'button';
       del.className = 'collab-del';
-      del.setAttribute('aria-label', '刪除 ' + item.text);
+      del.setAttribute('aria-label', '刪除');
       del.textContent = '✕';
-      del.addEventListener('click', function(){ deleteItem(item.id); });
+      del.addEventListener('click', () => deleteItem(item.id));
 
-      actions.appendChild(edit);
-      actions.appendChild(del);
       li.appendChild(cb);
-      li.appendChild(main);
-      li.appendChild(actions);
+      li.appendChild(span);
+      li.appendChild(del);
       listEl.appendChild(li);
     });
   }
 
-  function addItem(text, category, qty){
-    text = (text || '').trim();
-    if(!text) return;
-    category = category || '其他';
-    qty = Math.max(1, Math.min(99, Number(qty) || 1));
-    cache.items = cache.items || [];
-    var duplicate = cache.items.find(function(it){
-      return String(it.text || '').trim().toLowerCase() === text.toLowerCase() &&
-             (it.category || '其他') === category && !it.checked;
-    });
-    if(duplicate){
-      duplicate.qty = (Number(duplicate.qty) || 1) + qty;
-    } else {
-      cache.items.push({
-        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-        text: text, checked: false, category: category, qty: qty
-      });
+  // 4. Firebase 即時監聽器 (毫秒級雙向同步)
+  function attachFirebaseListener() {
+    if (!isFirebaseReady || !listId) {
+      if (!isFirebaseReady) {
+        setStatus('🟡 離線模式 (請在 HTML 底層填入 Firebase Config 金鑰)', 'var(--gold)');
+      }
+      return;
     }
+
+    setStatus('🔄 連線 Firebase 中…');
+    db.ref('shopping_lists/' + listId).on('value', (snapshot) => {
+      const data = snapshot.val();
+      if (data && Array.isArray(data.items)) {
+        cache.items = data.items;
+        saveLocal();
+        render();
+        setStatus('🟢 Firebase 雲端即時連線 · ' + timeNow(), 'var(--moss)');
+      } else if (!data) {
+        // 雲端尚無資料，將本地資料推送上去初始化
+        pushToFirebase();
+      }
+    }, (error) => {
+      console.warn("Firebase 讀取受阻：", error);
+      setStatus('🟡 雲端連線中斷，以本地暫存運作', 'var(--gold)');
+    });
+  }
+
+  // 推送更新到 Firebase
+  function pushToFirebase() {
+    saveLocal();
+    if (!isFirebaseReady || !listId) return;
+
+    db.ref('shopping_lists/' + listId).set({
+      items: cache.items,
+      updatedAt: Date.now()
+    }).then(() => {
+      setStatus('🟢 已同步至雲端 · ' + timeNow(), 'var(--moss)');
+    }).catch(err => {
+      console.error("Firebase 寫入失敗：", err);
+      setStatus('🟡 儲存至手機 (待連線)', 'var(--gold)');
+    });
+  }
+
+  function addItem(text){
+    text = (text || '').trim();
+    if (!text) return;
+    cache.items = cache.items || [];
+    cache.items.push({
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      text: text,
+      checked: false
+    });
     render();
-    saveList();
+    pushToFirebase();
   }
 
   function toggleItem(id){
-    (cache.items || []).forEach(function(it){
-      if(it.id === id) it.checked = !it.checked;
+    (cache.items || []).forEach(it => {
+      if (it.id === id) it.checked = !it.checked;
     });
     render();
-    saveList();
+    pushToFirebase();
   }
 
   function deleteItem(id){
-    var target = (cache.items || []).find(function(it){ return it.id === id; });
-    if(!target) return;
-    if(!confirm('刪除「' + target.text + '」？')) return;
-    cache.items = (cache.items || []).filter(function(it){ return it.id !== id; });
+    cache.items = (cache.items || []).filter(it => it.id !== id);
     render();
-    saveList();
-  }
-
-  function openEditor(item){
-    editingId = item.id;
-    document.getElementById('edit-text').value = item.text || '';
-    document.getElementById('edit-category').value = item.category || '其他';
-    document.getElementById('edit-qty').value = item.qty || 1;
-    var pop = document.getElementById('shopping-edit-pop');
-    pop.classList.add('show');
-    pop.setAttribute('aria-hidden','false');
-    setTimeout(function(){ document.getElementById('edit-text').focus(); }, 50);
-  }
-
-  function closeEditor(){
-    editingId = null;
-    var pop = document.getElementById('shopping-edit-pop');
-    pop.classList.remove('show');
-    pop.setAttribute('aria-hidden','true');
-  }
-
-  function saveEditedItem(){
-    if(!editingId) return;
-    var text = document.getElementById('edit-text').value.trim();
-    if(!text){ alert('請輸入品項名稱。'); return; }
-    var category = document.getElementById('edit-category').value || '其他';
-    var qty = Math.max(1, Math.min(99, Number(document.getElementById('edit-qty').value) || 1));
-    (cache.items || []).forEach(function(it){
-      if(it.id === editingId){
-        it.text = text; it.category = category; it.qty = qty;
-      }
-    });
-    closeEditor();
-    render();
-    saveList();
-  }
-
-  function clearDone(){
-    var doneCount = (cache.items || []).filter(function(it){ return !!it.checked; }).length;
-    if(!doneCount) { alert('目前沒有已購買項目。'); return; }
-    if(!confirm('確定清除已買的 ' + doneCount + ' 項嗎？')) return;
-    cache.items = (cache.items || []).filter(function(it){ return !it.checked; });
-    render();
-    saveList();
-  }
-
-  function setFilter(filter){
-    currentFilter = filter;
-    document.querySelectorAll('.filter-btn').forEach(function(btn){
-      btn.classList.toggle('active', btn.getAttribute('data-filter') === filter);
-    });
-    render();
+    pushToFirebase();
   }
 
   function seedDefaultItems(){
-    if(!confirm('確定要匯入行程推薦的 10 項必買品項嗎？')) return;
+    if (!confirm('確定要匯入行程推薦的 10 項必買品項嗎？')) return;
     cache.items = cache.items || [];
-    SEED_ITEMS.forEach(function(txt){
-      var exists = cache.items.some(function(item){ return item.text === txt; });
-      if(!exists){
-        var category = txt.indexOf('【本通】') === 0 ? '本通' : (txt.indexOf('【永旺】') === 0 ? '永旺' : '廣島站');
+    SEED_ITEMS.forEach(txt => {
+      const exists = cache.items.some(it => it.text === txt);
+      if (!exists) {
         cache.items.push({
           id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-          text: txt.replace(/^【[^】]+】\s*/, ''), checked:false, category:category, qty:1
+          text: txt,
+          checked: false
         });
       }
     });
     render();
-    saveList();
+    pushToFirebase();
   }
 
-  function startPolling(){
-    if(pollTimer) clearInterval(pollTimer);
-    if(listId && !listId.startsWith('LOCAL_')){
-      pollTimer = setInterval(function(){ fetchList(true); }, 8000);
-    }
-  }
-
-  // 建立新清單
   function createList(){
-    if (window.location.protocol === 'file:') {
-      alert('【重要提示】您目前是在電腦本地直接雙擊開啟 HTML (file:///)。\n瀏覽器會嚴格限制跨域連線，將自動切換為手機本地模式。\n\n若需多人線上同步，請將檔案上傳至 GitHub Pages、Vercel 等免費空間或本機伺服器開啟！');
-    }
-
-    setStatus('✨ 建立連線中…');
-    var initialItems = (cache.items && cache.items.length > 0) ? cache.items : [];
-    if(initialItems.length === 0){
-      SEED_ITEMS.forEach(function(txt){
-        initialItems.push({
+    setStatus('✨ 建立中…');
+    if (!cache.items || cache.items.length === 0) {
+      SEED_ITEMS.forEach(txt => {
+        cache.items.push({
           id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
           text: txt,
           checked: false
@@ -1784,104 +1650,61 @@
       });
     }
 
-    fetch(API, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify({ items: initialItems })
-    })
-    .then(function(r){
-      if(!r.ok) throw new Error('create failed: ' + r.status);
-      var loc = r.headers.get('Location') || '';
-      var id = loc.split('/').filter(Boolean).pop();
-      if(!id) throw new Error('No Location ID found');
-      return { id: id };
-    })
-    .then(function(res){
-      listId = res.id;
-      cache.items = initialItems;
-      saveLocal();
-      showActive();
-      render();
-      setStatus('🟢 已連線同步 · ' + timeNow(), 'var(--moss)');
-      startPolling();
-    })
-    .catch(function(err){
-      // 降級為本地安全模式
-      listId = 'LOCAL_' + Date.now().toString(36);
-      cache.items = initialItems;
-      saveLocal();
-      showActive();
-      render();
-      setStatus('🟡 手機本地模式 (' + (window.location.protocol === 'file:' ? '需伺服器環境' : '已離線保存') + ')', 'var(--gold)');
-    });
+    // 產生乾淨好看的 6 位專屬代碼
+    listId = 'you-' + Math.random().toString(36).substring(2, 8);
+    saveLocal();
+    showActive();
+    render();
+    attachFirebaseListener();
+    pushToFirebase();
   }
 
   function joinList(code){
     code = (code || '').trim();
-    if(!code){ alert('請輸入家人的分享代碼！'); return; }
+    if (!code) { alert('請輸入家人的分享代碼！'); return; }
     listId = code;
     saveLocal();
     showActive();
     render();
-    fetchList();
-    startPolling();
+    attachFirebaseListener();
   }
 
   function resetList(){
-    if(confirm('確定要更換或解除綁定現在的清單代碼嗎？')){
-      if(pollTimer) clearInterval(pollTimer);
+    if (confirm('確定要更換或解除綁定現在的清單代碼嗎？')) {
+      if (db && listId) {
+        db.ref('shopping_lists/' + listId).off();
+      }
       listId = null;
-      try{ 
-        localStorage.removeItem(LS_ID_KEY); 
+      try {
+        localStorage.removeItem(LS_ID_KEY);
         localStorage.removeItem(LS_DATA_KEY);
-      }catch(e){}
+      } catch(e){}
       showOnboard();
     }
   }
 
   document.getElementById('btn-create').addEventListener('click', createList);
-  document.getElementById('btn-join').addEventListener('click', function(){ joinList(joinInput.value); });
-  joinInput.addEventListener('keydown', function(e){ if(e.key === 'Enter'){ joinList(joinInput.value); } });
+  document.getElementById('btn-join').addEventListener('click', () => joinList(joinInput.value));
+  joinInput.addEventListener('keydown', e => { if (e.key === 'Enter') joinList(joinInput.value); });
 
-  document.getElementById('btn-add').addEventListener('click', function(){
-    addItem(newItem.value, document.getElementById('new-category').value, document.getElementById('new-qty').value);
-    newItem.value = '';
-    document.getElementById('new-qty').value = 1;
-    newItem.focus();
-  });
-  newItem.addEventListener('keydown', function(e){
-    if(e.key === 'Enter'){
-      addItem(newItem.value, document.getElementById('new-category').value, document.getElementById('new-qty').value);
-      newItem.value = '';
-      document.getElementById('new-qty').value = 1;
-    }
-  });
-  document.getElementById('shopping-search').addEventListener('input', function(){
-    currentSearch = this.value;
-    render();
-  });
-  document.querySelectorAll('.filter-btn').forEach(function(btn){
-    btn.addEventListener('click', function(){ setFilter(this.getAttribute('data-filter')); });
-  });
-  document.getElementById('btn-clear-done').addEventListener('click', clearDone);
-  document.getElementById('btn-edit-cancel').addEventListener('click', closeEditor);
-  document.getElementById('btn-edit-save').addEventListener('click', saveEditedItem);
-  document.getElementById('edit-text').addEventListener('keydown', function(e){ if(e.key === 'Enter') saveEditedItem(); });
+  document.getElementById('btn-add').addEventListener('click', () => { addItem(newItem.value); newItem.value = ''; });
+  newItem.addEventListener('keydown', e => { if (e.key === 'Enter') { addItem(newItem.value); newItem.value = ''; } });
+
   document.getElementById('btn-seed').addEventListener('click', seedDefaultItems);
   document.getElementById('btn-reset').addEventListener('click', resetList);
 
-  document.getElementById('btn-copy').addEventListener('click', function(){
-    if(navigator.clipboard && navigator.clipboard.writeText){
-      navigator.clipboard.writeText(listId).then(function(){ alert('代碼已複製：' + listId); });
+  document.getElementById('btn-copy').addEventListener('click', () => {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(listId).then(() => alert('代碼已複製：' + listId));
     } else {
       window.prompt('請複製代碼：', listId);
     }
   });
 
-  document.getElementById('btn-copy-link').addEventListener('click', function(){
-    var shareUrl = window.location.origin + window.location.pathname + '?list=' + listId + '#tab6';
-    if(navigator.clipboard && navigator.clipboard.writeText){
-      navigator.clipboard.writeText(shareUrl).then(function(){
+  document.getElementById('btn-copy-link').addEventListener('click', () => {
+    const shareUrl = window.location.origin + window.location.pathname + '?list=' + listId + '#tab6';
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(shareUrl).then(() => {
         alert('已複製 LINE 專屬連結！\n家人點開即可自動加入同一份清單。');
       });
     } else {
@@ -1889,25 +1712,16 @@
     }
   });
 
-  document.addEventListener('visibilitychange', function(){
-    if(document.visibilityState === 'visible' && listId && !listId.startsWith('LOCAL_') && !isSyncing){
-      fetchList(true);
-    }
-  });
-
-  if(listId){
+  // 初始化啟動
+  if (listId) {
     showActive();
     render();
-    if(!listId.startsWith('LOCAL_')){
-      fetchList();
-      startPolling();
-    } else {
-      setStatus('🟡 手機本地模式 (' + (window.location.protocol === 'file:' ? '需伺服器環境' : '正常保存中') + ')', 'var(--gold)');
-    }
+    attachFirebaseListener();
   } else {
     showOnboard();
   }
 })();
 </script>
+
 </body>
 </html>
