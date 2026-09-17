@@ -953,6 +953,10 @@
 <div class="card">
 <h3>⚡ Firebase 毫秒即時同步</h3>
 <div class="desc">多台手機雙向連線！任何人勾選或新增，全家畫面立即更新；離線時自動保存，連網瞬間同步。</div>
+<div class="quote-box" style="margin-top:10px;">
+  🛒 V4.1 修復：共享購物清單同步引擎已恢復。既有共享代碼與 Firebase 清單資料不會因這次修復被重設；若原本是透過分享連結加入，請使用原本含 <strong>?list=共享代碼</strong> 的連結開啟。
+</div>
+
 <!-- 初始畫面 -->
 <div id="collab-onboard" style="display:none; margin-top:12px;">
 <div class="quote-box">首次使用請點擊「建立新共享清單」，再將分享連結傳至 LINE 群組，家人點開即可自動加入同一份清單！</div>
@@ -1353,6 +1357,318 @@
 <!-- ======================================================== -->
 <!-- Firebase Realtime Database 原生即時同步引擎 (100% 穩定) -->
 <!-- ======================================================== -->
+<script>
+
+(function(){
+  const firebaseConfig = {
+    apiKey: "AIzaSyBOXrHNIu4geqRN44oKDu0WW7OeG9xUfhA",
+    authDomain: "hiroshima-c620b.firebaseapp.com",
+    databaseURL: "https://hiroshima-c620b-default-rtdb.firebaseio.com",
+    projectId: "hiroshima-c620b",
+    storageBucket: "hiroshima-c620b.firebasestorage.app",
+    messagingSenderId: "763825571192",
+    appId: "1:763825571192:web:ecaaef44626ac9f37af48d"
+  };
+
+  const LS_ID_KEY = 'you-family-shopping-list-id';
+  const LS_DATA_KEY = 'you-family-shopping-local-items';
+  let listId = null;
+  let db = null;
+  let isFirebaseReady = false;
+
+  const SEED_ITEMS = [
+    '【本通】合利他命 EX Plus 270錠',
+    '【本通】EVE 止痛藥 / 感冒微粒',
+    '【本通】兒童專用眼藥水 / 防蚊貼片',
+    '【本通】唐吉訶德限定零食 / 保溫瓶',
+    '【永旺】阿卡將本舖：亦璇 3歲 機能童鞋',
+    '【永旺】阿卡將本舖：亦忻 10M 常溫副食品包',
+    '【永旺】阿卡將本舖：雙寶秋冬保暖防踢被',
+    '【永旺】全家秋冬服飾 (MUJI / UNIQLO)',
+    '【廣島站】Bic Camera 日系小家電',
+    '【廣島站】ekie 紅葉堂炸楓葉饅頭'
+  ];
+
+  let cache = { items: [] };
+
+  // 1. 初始化 Firebase
+  if (firebaseConfig.apiKey && firebaseConfig.apiKey !== "YOUR_API_KEY") {
+    try {
+      firebase.initializeApp(firebaseConfig);
+      db = firebase.database();
+      isFirebaseReady = true;
+    } catch(e) {
+      console.error("Firebase 初始化失敗：", e);
+    }
+  }
+
+  // 2. 讀取本地暫存
+  try {
+    listId = localStorage.getItem(LS_ID_KEY);
+    const savedItems = localStorage.getItem(LS_DATA_KEY);
+    if (savedItems) { cache.items = JSON.parse(savedItems); }
+  } catch(e){}
+
+  // 3. 檢查網址參數 (?list=xxx)
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    let qList = urlParams.get('list');
+    if (!qList && window.location.hash) {
+      const hashMatch = window.location.hash.match(/[#&]list=([^&]+)/);
+      if (hashMatch) qList = hashMatch[1];
+    }
+    if (qList) {
+      listId = qList.trim();
+      localStorage.setItem(LS_ID_KEY, listId);
+    }
+  } catch(e){}
+
+  const onboard   = document.getElementById('collab-onboard');
+  const active    = document.getElementById('collab-active');
+  const shareCode = document.getElementById('share-code');
+  const statusEl  = document.getElementById('sync-status');
+  const listEl    = document.getElementById('item-list');
+  const newItem   = document.getElementById('new-item');
+  const joinInput = document.getElementById('join-code');
+
+  function timeNow(){
+    const d = new Date();
+    const pad = n => (n<10?'0':'')+n;
+    return pad(d.getHours())+':'+pad(d.getMinutes());
+  }
+
+  function setStatus(t, color){
+    if (statusEl) {
+      statusEl.textContent = t;
+      statusEl.style.color = color || 'var(--ink-muted)';
+    }
+  }
+
+  function saveLocal(){
+    try {
+      localStorage.setItem(LS_DATA_KEY, JSON.stringify(cache.items || []));
+      if (listId) localStorage.setItem(LS_ID_KEY, listId);
+    } catch(e){}
+  }
+
+  function showActive(){
+    if (onboard) onboard.style.display = 'none';
+    if (active) active.style.display  = 'block';
+    if (shareCode) shareCode.textContent = listId;
+  }
+
+  function showOnboard(){
+    if (active) active.style.display  = 'none';
+    if (onboard) onboard.style.display = 'block';
+  }
+
+  function render(){
+    if (!listEl) return;
+    listEl.innerHTML = '';
+    const items = cache.items || [];
+    if (items.length === 0) {
+      const empty = document.createElement('li');
+      empty.className = 'collab-empty';
+      empty.textContent = '目前沒有品項，點擊「匯入推薦必買」或直接新增第一筆吧！';
+      listEl.appendChild(empty);
+      return;
+    }
+    items.forEach(item => {
+      const li = document.createElement('li');
+      li.className = 'collab-item' + (item.checked ? ' checked' : '');
+
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = !!item.checked;
+      cb.addEventListener('change', () => toggleItem(item.id));
+
+      const span = document.createElement('span');
+      span.className = 'collab-text';
+      span.textContent = item.text;
+
+      const del = document.createElement('button');
+      del.type = 'button';
+      del.className = 'collab-del';
+      del.setAttribute('aria-label', '刪除');
+      del.textContent = '✕';
+      del.addEventListener('click', () => deleteItem(item.id));
+
+      li.appendChild(cb);
+      li.appendChild(span);
+      li.appendChild(del);
+      listEl.appendChild(li);
+    });
+  }
+
+  // 4. Firebase 即時監聽器 (毫秒級雙向同步)
+  function attachFirebaseListener() {
+    if (!isFirebaseReady || !listId) {
+      if (!isFirebaseReady) {
+        setStatus('🟡 離線模式 (請在 HTML 底層填入 Firebase Config 金鑰)', 'var(--gold)');
+      }
+      return;
+    }
+
+    setStatus('🔄 連線 Firebase 中…');
+    db.ref('shopping_lists/' + listId).on('value', (snapshot) => {
+      const data = snapshot.val();
+      if (data && Array.isArray(data.items)) {
+        cache.items = data.items;
+        saveLocal();
+        render();
+        setStatus('🟢 Firebase 雲端即時連線 · ' + timeNow(), 'var(--moss)');
+      } else if (!data) {
+        pushToFirebase();
+      }
+    }, (error) => {
+      console.warn("Firebase 讀取受阻：", error);
+      setStatus('🟡 雲端連線中斷，以本地暫存運作', 'var(--gold)');
+    });
+  }
+
+  // 推送更新到 Firebase
+  function pushToFirebase() {
+    saveLocal();
+    if (!isFirebaseReady || !listId) return;
+
+    db.ref('shopping_lists/' + listId).set({
+      items: cache.items,
+      updatedAt: Date.now()
+    }).then(() => {
+      setStatus('🟢 已同步至雲端 · ' + timeNow(), 'var(--moss)');
+    }).catch(err => {
+      console.error("Firebase 寫入失敗：", err);
+      setStatus('🟡 儲存至手機 (待連線)', 'var(--gold)');
+    });
+  }
+
+  function addItem(text){
+    text = (text || '').trim();
+    if (!text) return;
+    cache.items = cache.items || [];
+    cache.items.push({
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      text: text,
+      checked: false
+    });
+    render();
+    pushToFirebase();
+  }
+
+  function toggleItem(id){
+    (cache.items || []).forEach(it => {
+      if (it.id === id) it.checked = !it.checked;
+    });
+    render();
+    pushToFirebase();
+  }
+
+  function deleteItem(id){
+    cache.items = (cache.items || []).filter(it => it.id !== id);
+    render();
+    pushToFirebase();
+  }
+
+  function seedDefaultItems(){
+    if (!confirm('確定要匯入行程推薦的 10 項必買品項嗎？')) return;
+    cache.items = cache.items || [];
+    SEED_ITEMS.forEach(txt => {
+      const exists = cache.items.some(it => it.text === txt);
+      if (!exists) {
+        cache.items.push({
+          id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+          text: txt,
+          checked: false
+        });
+      }
+    });
+    render();
+    pushToFirebase();
+  }
+
+  function createList(){
+    setStatus('✨ 建立中…');
+    if (!cache.items || cache.items.length === 0) {
+      SEED_ITEMS.forEach(txt => {
+        cache.items.push({
+          id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+          text: txt,
+          checked: false
+        });
+      });
+    }
+
+    listId = 'you-' + Math.random().toString(36).substring(2, 8);
+    saveLocal();
+    showActive();
+    render();
+    attachFirebaseListener();
+    pushToFirebase();
+  }
+
+  function joinList(code){
+    code = (code || '').trim();
+    if (!code) { alert('請輸入家人的分享代碼！'); return; }
+    listId = code;
+    saveLocal();
+    showActive();
+    render();
+    attachFirebaseListener();
+  }
+
+  function resetList(){
+    if (confirm('確定要更換或解除綁定現在的清單代碼嗎？')) {
+      if (db && listId) {
+        db.ref('shopping_lists/' + listId).off();
+      }
+      listId = null;
+      try {
+        localStorage.removeItem(LS_ID_KEY);
+        localStorage.removeItem(LS_DATA_KEY);
+      } catch(e){}
+      showOnboard();
+    }
+  }
+
+  document.getElementById('btn-create').addEventListener('click', createList);
+  document.getElementById('btn-join').addEventListener('click', () => joinList(joinInput.value));
+  joinInput.addEventListener('keydown', e => { if (e.key === 'Enter') joinList(joinInput.value); });
+
+  document.getElementById('btn-add').addEventListener('click', () => { addItem(newItem.value); newItem.value = ''; });
+  newItem.addEventListener('keydown', e => { if (e.key === 'Enter') { addItem(newItem.value); newItem.value = ''; } });
+
+  document.getElementById('btn-seed').addEventListener('click', seedDefaultItems);
+  document.getElementById('btn-reset').addEventListener('click', resetList);
+
+  document.getElementById('btn-copy').addEventListener('click', () => {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(listId).then(() => alert('代碼已複製：' + listId));
+    } else {
+      window.prompt('請複製代碼：', listId);
+    }
+  });
+
+  document.getElementById('btn-copy-link').addEventListener('click', () => {
+    const shareUrl = window.location.origin + window.location.pathname + '?list=' + listId + '#tab6';
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        alert('已複製 LINE 專屬連結！\n家人點開即可自動加入同一份清單。');
+      });
+    } else {
+      window.prompt('請複製專屬連結傳給家人：', shareUrl);
+    }
+  });
+
+  // 初始化啟動
+  if (listId) {
+    showActive();
+    render();
+    attachFirebaseListener();
+  } else {
+    showOnboard();
+  }
+})();
+</script>
 <script>
   // UX Dashboard controller v4：2026/10/18–10/24 即時倒數 + D1–D7 自動辨識
   (function(){
