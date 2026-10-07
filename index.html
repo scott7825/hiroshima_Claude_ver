@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/>
-<title>廣島親子七日行 | Family Travel Dashboard v5.3</title>
+<title>廣島親子七日行 | Family Travel Dashboard v5.5</title>
 <!-- PWA / iOS 獨立 App 模式設定 -->
 <meta content="yes" name="apple-mobile-web-app-capable"/>
 <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
@@ -161,7 +161,9 @@
   #tab10:checked ~ .panels #c10,
   #tab11:checked ~ .panels #c11,
   #tab12:checked ~ .panels #c12,
-  #tab13:checked ~ .panels #c13 { display: block; animation: fadeIn 0.25s ease-out; }
+  #tab13:checked ~ .panels #c13,
+  #tab14:checked ~ .panels #c14,
+  #tab14:checked ~ #c14 { display: block; animation: fadeIn 0.25s ease-out; }
 
   #tab1:checked  ~ .tab-bar label[for="tab1"],
   #tab2:checked  ~ .tab-bar label[for="tab2"],
@@ -175,7 +177,8 @@
   #tab10:checked ~ .tab-bar label[for="tab10"],
   #tab11:checked ~ .tab-bar label[for="tab11"],
   #tab12:checked ~ .tab-bar label[for="tab12"],
-  #tab13:checked ~ .tab-bar label[for="tab13"] {
+  #tab13:checked ~ .tab-bar label[for="tab13"],
+  #tab14:checked ~ .tab-bar label[for="tab14"] {
     color: #FFFFFF;
     background: var(--ink-main);
     border-color: var(--ink-main);
@@ -580,6 +583,27 @@
 .daily-detail-table td{vertical-align:top;padding:9px 10px;border-top:1px solid #E5E7EB;line-height:1.55}
 .daily-detail-table td:first-child{white-space:nowrap;font-weight:700;color:#9F2943}
 @media(max-width:640px){.daily-detail-card{padding:12px}.daily-detail-table{min-width:700px;font-size:12px}}
+
+  /* ===== Firebase Travel Checklist v5.4 ===== */
+  .check-section-title{font-size:15px;font-weight:900;color:var(--ink-main);margin:4px 0 10px}
+  .check-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .check-item{display:flex;align-items:flex-start;gap:10px;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:#fff;min-height:54px}
+  .check-item.checked{opacity:.58;background:#F8FAFC}
+  .check-item input{margin-top:3px;width:19px;height:19px;accent-color:var(--moss);flex:0 0 auto}
+  .check-copy{font-size:13px;line-height:1.45;color:var(--ink-main)}
+  .check-copy small{display:block;color:var(--ink-muted);margin-top:2px}
+  .check-progress{display:flex;align-items:center;gap:10px;margin-top:10px}
+  .check-progress-track{height:9px;background:#E5E7EB;border-radius:99px;overflow:hidden;flex:1}
+  .check-progress-bar{height:100%;width:0;background:linear-gradient(90deg,var(--moss),#7FAF9A);transition:width .25s ease}
+  .cash-grid{display:grid;grid-template-columns:minmax(0,1fr) 130px;gap:8px 12px;align-items:center}
+  .cash-grid label{font-size:13px;color:var(--ink-sub)}
+  .cash-input{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:10px;padding:9px 10px;font-size:14px;text-align:right;background:#fff}
+  .cash-total{margin-top:12px;padding:14px;border-radius:14px;background:linear-gradient(135deg,#FFF8E7,#FFFDF8);border:1px solid #F1D8A8}
+  .cash-total strong{font-size:24px;color:#9A6B1C}
+  .cash-status{font-size:13px;margin-top:5px;color:var(--ink-sub)}
+  .cloud-pill{display:inline-flex;align-items:center;gap:5px;padding:6px 9px;border-radius:999px;background:#F1F5F9;font-size:12px;font-weight:700;color:var(--ink-sub)}
+  @media(max-width:700px){.check-grid{grid-template-columns:1fr}.cash-grid{grid-template-columns:minmax(0,1fr) 115px}}
+
 </style>
 <style id="gis-map-viewer-style">
 #gisMapViewer{position:fixed;inset:0;z-index:99999;background:rgba(2,6,23,.97);display:none;flex-direction:column;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
@@ -613,6 +637,7 @@
 <input id="tab11" name="tabs" type="radio"/>
 <input id="tab12" name="tabs" type="radio"/>
 <input id="tab13" name="tabs" type="radio"/>
+<input id="tab14" name="tabs" type="radio"/>
 <!-- 頂部主導航看板 -->
 <div class="masthead">
 <div class="eyebrow-row">
@@ -629,7 +654,7 @@
 <div><div class="dash-label">目前建議</div><div class="dash-title" id="dash-title">出發前準備</div><div class="dash-sub" id="dash-sub">確認證件、航班、接送與共享購物清單</div></div>
 <button class="dash-action" id="btn-today" type="button">查看今日 →</button>
 </div>
-<div class="dash-chips"><button data-jump="tab2" type="button">🚈 交通</button><button data-jump="tab4" type="button">🍽 餐廳</button><button data-jump="tab6" type="button">🛒 清單</button></div>
+<div class="dash-chips"><button data-jump="tab2" type="button">🚈 交通</button><button data-jump="tab4" type="button">🍽 餐廳</button><button data-jump="tab6" type="button">🛒 購物</button><button data-jump="tab14" type="button">✅ 攜帶</button></div>
 </section>
 <!-- 雙層導航：工具與每日行程分流 -->
 <div class="nav-caption"><span>旅行工具</span><span>左右滑動查看更多</span></div>
@@ -640,6 +665,7 @@
 <label for="tab4">🍽️ 餐廳</label>
 <label for="tab5">🎒 備忘</label>
 <label for="tab6">🛒 購物清單</label>
+<label for="tab14">✅ 攜帶清單</label>
 </div>
 <div class="nav-caption day-caption"><span>每日行程</span><span id="day-hint">D1–D7</span></div>
 <div class="tab-bar day-tabs">
@@ -959,7 +985,7 @@
 </svg>
 <div class="banner-overlay">
 <div class="kicker">WEATHER &amp; PACKING</div>
-<h2>氣候概況與必帶清單</h2>
+<h2>天氣備忘・氣候概況與必帶清單</h2>
 </div>
 </div>
 <div class="card">
@@ -972,6 +998,29 @@
 </div>
 <div class="quote-box">秋高氣爽居多（降雨機率約 25%），但日夜溫差達 10°C。宮島與吳市港邊海風勁涼，務必攜帶洋蔥式薄羽絨／推車防風罩。</div>
 </div>
+
+<div class="card">
+<h3>📅 10/18–10/24 最新天氣趨勢｜2026/10/07 更新</h3>
+<div class="quote-box" style="margin-bottom:10px;">
+<strong>目前仍屬中長期預報：</strong>溫度趨勢已有參考價值，但「晴／雨」與降雨時段在出發前 3–5 天才會明顯可靠。以下先用目前可查到的長期預報整理穿著與行動重點；旅行前我建議再做一次逐日更新。
+</div>
+<div style="overflow-x:auto;">
+<table class="plan">
+<tr><th>日期</th><th>主要地點</th><th>目前溫度趨勢</th><th>天氣備忘</th></tr>
+<tr><td>D1｜10/18</td><td>廣島市</td><td><strong>約 22 / 14°C</strong></td><td>抵達日早晚偏涼；飛機與巴士冷氣環境建議薄外套隨身。</td></tr>
+<tr><td>D2｜10/19</td><td>宮島</td><td><strong>約 24 / 15°C</strong></td><td>白天舒適，但渡輪、海邊與表參道可能有海風；推車防風罩與孩子薄外套建議攜帶。</td></tr>
+<tr><td>D3｜10/20</td><td>廣島市區</td><td><strong>約 24 / 15°C</strong></td><td>市區步行舒適；午後若曬可較暖，採洋蔥式穿搭即可。</td></tr>
+<tr><td>D4｜10/21</td><td>岡山・倉敷</td><td><strong>約 23 / 14°C</strong></td><td>川舟與美觀地區皆偏戶外；早晨新幹線移動與午後河畔可能偏涼。雨天／強風會影響川舟，前一晚務必再確認運航。</td></tr>
+<tr><td>D5｜10/22</td><td>吳市・廣島灣沿岸</td><td><strong>約 23 / 14–16°C</strong></td><td>港區風感可能比市區低 1–2°C；若啟動 Portpia Park 備案，孩子要多一件防風薄外套。</td></tr>
+<tr><td>D6｜10/23</td><td>縮景園・府中</td><td><strong>約 22 / 15°C</strong></td><td>戶外庭園＋室內商場混合，薄外套最好方便穿脫。</td></tr>
+<tr><td>D7｜10/24</td><td>廣島 → 機場</td><td><strong>約 23 / 14°C</strong></td><td>早上 07:00–09:30 是最容易覺得冷的時段；外套不要先塞進托運行李。</td></tr>
+</table>
+</div>
+<div class="quote-box" style="margin-top:10px;border-left-color:#4F8A76;">
+<strong>穿著結論：</strong>大人以「短袖／薄長袖＋輕外套」為主；3 歲孩子與 10 個月嬰兒多準備一層。宮島、倉敷川舟、吳港區是三個最需要注意風感的戶外日。
+</div>
+</div>
+
 <div class="card">
 <h3>💊 必帶小兒常備藥品 (台灣開立)</h3>
 <ul style="font-size:13.5px; color:var(--ink-sub);">
@@ -1401,9 +1450,73 @@
 <div class="t-title">廣島機場（華航櫃檯 Check-in）</div>
 <div class="t-desc">抵達廣島機場，前往華航櫃檯辦理 Check-in。</div>
 <br/><a class="btn-nav" href="https://www.google.com/maps/search/?api=1&amp;query=広島空港" rel="noopener" target="_blank">📍 導航 廣島機場</a>
-</div></div>
+</div>
 <div class="daily-detail-card"><h3>📋 D7 當日完整細節</h3><div class="detail-sub">時間軸 × 行程與移動 × 餐食安排 × 領隊防呆叮嚀（v4.8 已完整補回）</div><div class="daily-detail-wrap"><table class="daily-detail-table"><tr><th>時間軸</th><th>行程與移動方式</th><th>餐食安排</th><th>領隊防呆叮嚀</th></tr><tr><td>07:00</td><td>起床、最後裝箱、冰箱清空、垃圾依 Airbnb 規定處理。</td><td>簡單早餐。</td><td>護照、手機、錢包、嬰兒奶粉、行動電源最後才進隨身包。</td></tr><tr><td>07:45–08:20</td><td>八丁堀 → 廣島站新幹線口。</td><td>—</td><td>預留推車與大行李的電梯等待。</td></tr><tr><td>08:35</td><td>抵達利木津巴士站候車；搭 08:40 廣島站 → 09:30 廣島機場。</td><td>—</td><td>08:35 是到站候車時間，不是發車時間；錯過後下一班 08:50 → 09:40。</td></tr><tr><td>09:30–11:10</td><td>HIJ 國際線報到、托運、安檢、出境。</td><td>機場簡餐。</td><td>先處理推車/嬰兒用品，再買最後伴手禮；11:00 前到登機門附近。</td></tr><tr><td>11:40–13:20</td><td>CI113 廣島 → 桃園 T2。</td><td>機上餐。</td><td>下降前整理推車領取與孩子外套；全員下機後再點名。</td></tr><tr><td>13:20</td><td>桃機 T2 機場專車接回三峽｜訂單 F15364996。</td><td>—</td><td>實際入境/行李可能晚於 13:20；保留司機聯絡方式。</td></tr></table></div></div></div></div>
 <!-- ============ 3. 購票 ============ -->
+
+
+<div class="panel" id="c14">
+  <div class="banner-card">
+    <svg viewbox="0 0 400 118" xmlns="http://www.w3.org/2000/svg">
+      <defs><lineargradient id="g14" x1="0" x2="1" y1="0" y2="1"><stop offset="0%" stop-color="#456A5A"></stop><stop offset="100%" stop-color="#D6A35B"></stop></lineargradient></defs>
+      <rect fill="url(#g14)" width="400" height="118"></rect>
+      <g fill="none" stroke="#fff" stroke-width="5" opacity=".82"><path d="M118 36 h150 v58 h-150z"></path><path d="M145 55 l14 14 28-31"></path><path d="M145 83 h80"></path></g>
+    </svg>
+    <div class="banner-overlay"><div class="kicker">PACKING · CASH · FIREBASE</div><h2>旅行攜帶 Checklist ＆ 日幣預算</h2></div>
+  </div>
+
+  <div class="card">
+    <h3>☁️ 家族 Firebase 同步</h3>
+    <div class="desc">沿用購物清單的共享代碼。任何家人勾選、修改現金預算，其他裝置可同步看到；Firebase 暫時無法連線時會先保存在本機。</div>
+    <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <span class="cloud-pill" id="check-cloud-status">🟡 等待共享代碼</span>
+      <span class="cloud-pill">共享代碼：<strong id="check-share-code">—</strong></span>
+      <button class="btn-small" id="check-reconnect" type="button">🔄 重新連線</button>
+      <button class="btn-small" id="check-reset-defaults" style="background:#64748B" type="button">↺ 還原預設項目</button>
+    </div>
+    <div class="quote-box" style="margin-top:10px">若這裡顯示「等待共享代碼」，先到 <strong>🛒 購物清單</strong> 建立／加入家族共享清單；Checklist 會自動沿用同一組代碼。</div>
+  </div>
+
+  <div class="card">
+    <h3>🧳 出發前｜裝箱 Checklist</h3>
+    <div class="check-progress"><div class="check-progress-track"><div class="check-progress-bar" id="pretrip-progress-bar"></div></div><strong id="pretrip-progress-text">0/0</strong></div>
+    <div class="check-grid" id="pretrip-checks"></div>
+  </div>
+
+  <div class="card">
+    <h3>🎒 旅行途中｜每日隨身 Checklist</h3>
+    <div class="check-progress"><div class="check-progress-track"><div class="check-progress-bar" id="during-progress-bar"></div></div><strong id="during-progress-text">0/0</strong></div>
+    <div class="check-grid" id="during-checks"></div>
+  </div>
+
+  <div class="card">
+    <h3>💴 日幣現金計算器｜全家 7 天</h3>
+    <div class="desc">大型交通、百貨、AEON、Bic Camera 等優先刷卡；以下估算保留給小店、零星交通、孩子補貨與緊急狀況。金額可自行修改，會跟 Checklist 一起同步。</div>
+    <div class="cash-grid" id="cash-budget-grid" style="margin-top:12px"></div>
+    <div class="divider"></div>
+    <div class="cash-grid">
+      <label for="cash-prepared"><strong>目前已準備現金</strong></label>
+      <input class="cash-input" id="cash-prepared" inputmode="numeric" type="number" min="0" step="1000" value="150000"/>
+    </div>
+    <div class="cash-total">
+      <div>建議攜帶總額</div>
+      <strong id="cash-total">¥150,000</strong>
+      <div class="cash-status" id="cash-status">建議：日常可用約 ¥120,000 ＋ 緊急預備 ¥30,000。</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>👶 這次家庭組合的攜帶量提醒</h3>
+    <div class="badge-row">
+      <span class="badge">👶 尿布：約 6–8 片/日 × 7 天＋備用</span>
+      <span class="badge">🍼 奶粉：7 天需求＋至少 1 天備份</span>
+      <span class="badge">💊 長輩／常用藥：8 天份較安心</span>
+      <span class="badge">👕 幼兒：每天 1 套＋隨身備用 1–2 套</span>
+      <span class="badge">🔋 行動電源：隨身、不托運</span>
+    </div>
+    <div class="quote-box" style="margin-top:10px">尿布很占空間；若不想一次帶滿，可先帶足前半段＋安全備量，再依實際使用量於廣島市區補貨。奶粉／特殊副食品則建議優先帶足，以免臨時找不到慣用品。</div>
+  </div>
+</div>
 
 </div>
 <!-- ============ 4. 餐廳 ============ -->
@@ -1752,6 +1865,221 @@
   }
 })();
 </script>
+
+<script>
+(function(){
+  const LS_ID_KEY = 'you-family-shopping-list-id';
+  const LS_CHECK_KEY = 'you-family-travel-checklist-v54';
+  let checkDb = null, checkListId = null, checkRef = null, suppressRemote = false;
+
+  const DEFAULTS = {
+    pretrip: [
+      {id:'passport', text:'全員護照', note:'出門前逐本確認效期與姓名'},
+      {id:'flight_docs', text:'電子機票／住宿／接送資料離線保存', note:'重要預約截圖存手機相簿'},
+      {id:'insurance', text:'旅遊保險資料', note:'保單與緊急聯絡方式'},
+      {id:'cards', text:'信用卡至少 2 張', note:'不同銀行、分開保管'},
+      {id:'cash', text:'日圓現金完成分裝', note:'不要全部放同一個包'},
+      {id:'ic_card', text:'ICOCA／交通 IC', note:'實體卡或手機交通卡'},
+      {id:'phone', text:'手機／充電器／充電線', note:'全家主要裝置'},
+      {id:'powerbank', text:'行動電源', note:'只能隨身，不托運'},
+      {id:'network', text:'eSIM／SIM／漫遊已設定', note:'抵達日本可直接上網'},
+      {id:'stroller', text:'推車＋推車雨罩＋背巾', note:'雙寶行程建議推車與背巾都帶'},
+      {id:'diapers', text:'嬰兒尿布＋濕紙巾', note:'約 6–8 片/日 × 7 天＋安全備量'},
+      {id:'formula', text:'奶粉／奶瓶／清潔用品', note:'7 天需求＋至少 1 天備份'},
+      {id:'baby_food', text:'副食品／圍兜／奶嘴', note:'慣用品優先從台灣帶'},
+      {id:'kid_snacks', text:'3 歲孩子水壺／零食／小玩具', note:'排隊與車程備用'},
+      {id:'kid_clothes', text:'孩子換洗衣物', note:'每日衣物＋隨身備用 1–2 套'},
+      {id:'elder_meds', text:'長輩每日藥物', note:'建議 8 天份並分裝'},
+      {id:'medicine', text:'家庭常備藥／體溫計／OK 繃', note:'退燒、腸胃、過敏等慣用藥'},
+      {id:'clothes', text:'薄長袖／輕外套／好走鞋', note:'10 月早晚溫差採洋蔥式穿法'},
+      {id:'rain', text:'摺疊傘／輕便雨具', note:'推車雨罩另外確認'},
+      {id:'bags', text:'夾鏈袋／垃圾袋／摺疊購物袋', note:'育兒與採買都很實用'},
+      {id:'scale', text:'行李秤', note:'D6 購物後確認重量'},
+      {id:'riverboat', text:'倉敷川舟確認信截圖', note:'予約 ID 5692609｜13:20 前報到'}
+    ],
+    during: [
+      {id:'daily_passport', text:'護照／錢包／信用卡', note:'每天出門固定確認'},
+      {id:'daily_cash', text:'當日現金約 ¥20,000–30,000', note:'其餘現金分開保管'},
+      {id:'daily_phone', text:'手機＋行動電源', note:'前一晚充滿'},
+      {id:'daily_water', text:'全家飲用水', note:'出門前補滿'},
+      {id:'daily_diaper', text:'尿布 5–6 片＋濕紙巾', note:'依當天外出時間增加'},
+      {id:'daily_formula', text:'奶／副食品／奶瓶', note:'多帶一餐備援'},
+      {id:'daily_clothes', text:'孩子備用衣物 1–2 套', note:'另帶薄外套'},
+      {id:'daily_snacks', text:'孩子零食／小玩具', note:'交通與候位使用'},
+      {id:'daily_meds', text:'當日藥物／常備藥', note:'長輩與孩子各自確認'},
+      {id:'daily_weather', text:'出門前再看當日天氣／風勢', note:'宮島、倉敷川舟、吳港區特別注意'},
+      {id:'daily_rain', text:'摺疊傘／推車雨罩', note:'依天氣預報調整'},
+      {id:'daily_bag', text:'垃圾袋／夾鏈袋／衛生紙', note:'育兒臨時狀況用'},
+      {id:'daily_booking', text:'當日重要預約截圖', note:'川舟、交通或餐廳等'},
+      {id:'daily_weight', text:'購物後注意行李重量', note:'最後兩天特別確認'}
+    ],
+    cashBudget: {
+      meals: 35000,
+      miyajima: 15000,
+      localTransport: 20000,
+      taxi: 15000,
+      babyRestock: 10000,
+      convenience: 10000,
+      cashOnly: 15000,
+      emergency: 30000
+    },
+    cashPrepared: 150000,
+    checked: {}
+  };
+
+  const CASH_LABELS = [
+    ['meals','小餐館／咖啡／小吃'],
+    ['miyajima','宮島小店／伴手禮'],
+    ['localTransport','零星交通／IC 加值'],
+    ['taxi','計程車緊急預備'],
+    ['babyRestock','孩子／嬰兒臨時補貨'],
+    ['convenience','飲料／販賣機／便利商店'],
+    ['cashOnly','現金限定門票／小店備援'],
+    ['emergency','緊急備用金']
+  ];
+
+  let state = JSON.parse(JSON.stringify(DEFAULTS));
+
+  function cloneDefaults(){ return JSON.parse(JSON.stringify(DEFAULTS)); }
+  function yen(n){ return '¥' + Number(n||0).toLocaleString('ja-JP'); }
+  function getListId(){ try { return localStorage.getItem(LS_ID_KEY) || ''; } catch(e){ return ''; } }
+  function saveLocal(){ try { localStorage.setItem(LS_CHECK_KEY, JSON.stringify(state)); } catch(e){} }
+  function loadLocal(){
+    try {
+      const s = localStorage.getItem(LS_CHECK_KEY);
+      if(s){
+        const parsed = JSON.parse(s);
+        state = Object.assign(cloneDefaults(), parsed || {});
+        state.cashBudget = Object.assign({}, DEFAULTS.cashBudget, parsed.cashBudget || {});
+        state.checked = Object.assign({}, parsed.checked || {});
+      }
+    } catch(e){}
+  }
+  function setCloudStatus(t, ok){
+    const el=document.getElementById('check-cloud-status');
+    if(el){ el.textContent=t; el.style.color=ok===true?'var(--moss)':ok===false?'#B45309':'var(--ink-sub)'; }
+    const sc=document.getElementById('check-share-code');
+    if(sc) sc.textContent=checkListId || '—';
+  }
+
+  function renderChecks(section, containerId, barId, textId){
+    const box=document.getElementById(containerId); if(!box) return;
+    box.innerHTML='';
+    const items=state[section] || [];
+    let done=0;
+    items.forEach(item=>{
+      const key=section+':'+item.id, isChecked=!!state.checked[key];
+      if(isChecked) done++;
+      const label=document.createElement('label');
+      label.className='check-item'+(isChecked?' checked':'');
+      const cb=document.createElement('input'); cb.type='checkbox'; cb.checked=isChecked;
+      cb.addEventListener('change',()=>{
+        state.checked[key]=cb.checked;
+        renderAll(); persist();
+      });
+      const copy=document.createElement('div'); copy.className='check-copy';
+      copy.textContent=item.text;
+      if(item.note){ const sm=document.createElement('small'); sm.textContent=item.note; copy.appendChild(sm); }
+      label.appendChild(cb); label.appendChild(copy); box.appendChild(label);
+    });
+    const pct=items.length?Math.round(done/items.length*100):0;
+    const bar=document.getElementById(barId); if(bar) bar.style.width=pct+'%';
+    const txt=document.getElementById(textId); if(txt) txt.textContent=done+'/'+items.length;
+  }
+
+  function renderCash(){
+    const grid=document.getElementById('cash-budget-grid'); if(!grid) return;
+    grid.innerHTML='';
+    CASH_LABELS.forEach(([key,label])=>{
+      const lab=document.createElement('label'); lab.textContent=label;
+      const inp=document.createElement('input'); inp.className='cash-input'; inp.type='number'; inp.min='0'; inp.step='1000';
+      inp.value=Number(state.cashBudget[key]||0);
+      inp.addEventListener('change',()=>{ state.cashBudget[key]=Math.max(0,Number(inp.value||0)); renderCashSummary(); persist(); });
+      grid.appendChild(lab); grid.appendChild(inp);
+    });
+    const prep=document.getElementById('cash-prepared');
+    if(prep){
+      prep.value=Number(state.cashPrepared||0);
+      prep.onchange=()=>{ state.cashPrepared=Math.max(0,Number(prep.value||0)); renderCashSummary(); persist(); };
+    }
+    renderCashSummary();
+  }
+
+  function renderCashSummary(){
+    const total=Object.values(state.cashBudget||{}).reduce((a,b)=>a+Number(b||0),0);
+    const totalEl=document.getElementById('cash-total'); if(totalEl) totalEl.textContent=yen(total);
+    const st=document.getElementById('cash-status');
+    if(st){
+      const diff=Number(state.cashPrepared||0)-total;
+      st.textContent = diff>=0
+        ? '目前已準備 '+yen(state.cashPrepared)+'，比預算多 '+yen(diff)+'。大型消費仍建議刷卡。'
+        : '目前已準備 '+yen(state.cashPrepared)+'，尚差 '+yen(Math.abs(diff))+' 才達到目前預算。';
+    }
+  }
+
+  function renderAll(){
+    renderChecks('pretrip','pretrip-checks','pretrip-progress-bar','pretrip-progress-text');
+    renderChecks('during','during-checks','during-progress-bar','during-progress-text');
+    renderCash();
+  }
+
+  function persist(){
+    saveLocal();
+    if(!checkDb || !checkListId || suppressRemote) return;
+    checkDb.ref('travel_checklists/'+checkListId).set({
+      checked: state.checked,
+      cashBudget: state.cashBudget,
+      cashPrepared: state.cashPrepared,
+      updatedAt: Date.now()
+    }).then(()=>setCloudStatus('🟢 Firebase 已同步',true))
+      .catch(()=>setCloudStatus('🟡 Firebase 無法寫入，已保存本機',false));
+  }
+
+  function detach(){
+    if(checkRef){ checkRef.off(); checkRef=null; }
+  }
+
+  function connect(){
+    detach();
+    checkListId=getListId();
+    if(!checkListId){ setCloudStatus('🟡 等待共享代碼',null); return; }
+    try {
+      checkDb=firebase.database();
+      checkRef=checkDb.ref('travel_checklists/'+checkListId);
+      setCloudStatus('🔄 Firebase 連線中…',null);
+      checkRef.on('value', snap=>{
+        const d=snap.val();
+        if(d){
+          suppressRemote=true;
+          state.checked=Object.assign({},state.checked,d.checked||{});
+          state.cashBudget=Object.assign({},state.cashBudget,d.cashBudget||{});
+          if(typeof d.cashPrepared==='number') state.cashPrepared=d.cashPrepared;
+          saveLocal(); renderAll();
+          suppressRemote=false;
+          setCloudStatus('🟢 Firebase 即時同步',true);
+        } else {
+          persist();
+        }
+      }, err=>{
+        console.warn('Checklist Firebase:',err);
+        setCloudStatus('🟡 Firebase 讀取受阻，使用本機資料',false);
+      });
+    } catch(e){
+      setCloudStatus('🟡 Firebase 尚未就緒，使用本機資料',false);
+    }
+  }
+
+  document.getElementById('check-reconnect')?.addEventListener('click',connect);
+  document.getElementById('check-reset-defaults')?.addEventListener('click',()=>{
+    if(!confirm('要把 Checklist 項目與現金預算還原為預設值嗎？目前勾選狀態也會清除。')) return;
+    state=cloneDefaults(); renderAll(); persist();
+  });
+  document.querySelector('label[for="tab14"]')?.addEventListener('click',()=>setTimeout(connect,60));
+
+  loadLocal(); renderAll(); connect();
+})();
+</script>
+
 <script>
   // UX Dashboard controller v4：2026/10/18–10/24 即時倒數 + D1–D7 自動辨識
   (function(){
@@ -1826,7 +2154,7 @@
     document.querySelectorAll('.tab-bar label').forEach(l=>l.addEventListener('click',()=>setTimeout(()=>l.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'}),20)));
 
     const hash=(location.hash||'').replace('#','');
-    if(/^tab(?:[1-9]|1[0-3])$/.test(hash)){
+    if(/^tab(?:[1-9]|1[0-4])$/.test(hash)){
       const e=document.getElementById(hash);
       if(e)e.checked=true;
     }
