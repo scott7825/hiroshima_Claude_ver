@@ -2183,5 +2183,420 @@ gisStage.addEventListener('touchstart',e=>{if(e.touches.length===2){gisPinchStar
 gisStage.addEventListener('touchmove',e=>{if(e.touches.length===2&&gisPinchStart){const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);gisZoom=Math.max(.25,Math.min(3,gisPinchZoom*d/gisPinchStart));applyMapZoom();}},{passive:true});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMapViewer();});
 </script>
+<!-- ================================================================= -->
+<!-- 🌤️ 廣島・宮島・倉敷・吳市 天氣預報專屬分頁模組 (v5.6 Drop-in)     -->
+<!-- 支援 Open-Meteo (JMA 日本氣象廳模型) 即時更新 + 離線氣候基準保護  -->
+<!-- ================================================================= -->
+<style>
+  #tab15:checked ~ .panels #c15 { display: block; animation: fadeIn 0.25s ease-out; }
+  #tab15:checked ~ .tab-bar label[for="tab15"] {
+    color: #FFFFFF;
+    background: var(--ink-main);
+    border-color: var(--ink-main);
+    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.15);
+  }
+  .wx-live-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-top: 10px;
+  }
+  .wx-city-card {
+    background: linear-gradient(145deg, #F8FAFC, #EFF6FF);
+    border: 1px solid #DBEAFE;
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .wx-city-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--indigo);
+  }
+  .wx-city-temp {
+    font-size: 21px;
+    font-weight: 850;
+    color: var(--blue);
+    letter-spacing: -0.02em;
+  }
+  .wx-city-meta {
+    font-size: 11.5px;
+    color: var(--ink-sub);
+    font-weight: 600;
+  }
+  .wx-day-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 10px;
+  }
+  .wx-day-item {
+    border: 1px solid var(--line);
+    border-radius: 13px;
+    padding: 12px 14px;
+    background: #FFFFFF;
+    transition: transform 0.15s ease;
+  }
+  .wx-day-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .wx-day-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13.5px;
+    font-weight: 850;
+    color: var(--ink-main);
+  }
+  .wx-day-pill {
+    background: var(--indigo);
+    color: #FFFFFF;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 999px;
+  }
+  .wx-day-metrics {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 800;
+  }
+  .wx-temp-hi { color: #C0392B; }
+  .wx-temp-lo { color: #2563EB; }
+  .wx-rain-prob {
+    background: #EFF6FF;
+    color: #1D4ED8;
+    padding: 2px 7px;
+    border-radius: 6px;
+    font-size: 11.5px;
+  }
+  .wx-day-loc {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--torii);
+    margin-bottom: 4px;
+  }
+  .wx-day-tip {
+    font-size: 12.5px;
+    color: var(--ink-sub);
+    line-height: 1.5;
+    background: var(--card-sub);
+    padding: 8px 10px;
+    border-radius: 8px;
+  }
+  .wx-refresh-btn {
+    border: 1px solid var(--line);
+    background: #FFFFFF;
+    color: var(--ink-main);
+    border-radius: 8px;
+    padding: 5px 10px;
+    font-size: 12px;
+    font-weight: 750;
+    cursor: pointer;
+  }
+</style>
+
+<script>
+(function initWeatherForecastTab(){
+  const appShell = document.querySelector('.app-shell');
+  const utilityTabBar = document.querySelector('.utility-tabs');
+  const panels = document.querySelector('.panels');
+  const dashChips = document.querySelector('.dash-chips');
+  if (!appShell || !utilityTabBar || !panels) return;
+
+  // 1. 動態插入 Radio Input (#tab15)
+  const radio15 = document.createElement('input');
+  radio15.type = 'radio';
+  radio15.name = 'tabs';
+  radio15.id = 'tab15';
+  appShell.insertBefore(radio15, appShell.firstChild);
+
+  // 2. 在「旅行工具」導航列加入「🌤️ 天氣預報」按鈕（插在備忘與購物清單旁）
+  const label15 = document.createElement('label');
+  label15.setAttribute('for', 'tab15');
+  label15.innerHTML = '🌤️ 天氣預報';
+  const memoLabel = utilityTabBar.querySelector('label[for="tab5"]');
+  if (memoLabel && memoLabel.nextSibling) {
+    utilityTabBar.insertBefore(label15, memoLabel.nextSibling);
+  } else {
+    utilityTabBar.appendChild(label15);
+  }
+
+  // 3. 在頂部 Dashboard 快捷列加入「🌤️ 天氣」按鈕
+  if (dashChips) {
+    const wxChip = document.createElement('button');
+    wxChip.type = 'button';
+    wxChip.setAttribute('data-jump', 'tab15');
+    wxChip.textContent = '🌤️ 天氣';
+    wxChip.addEventListener('click', () => {
+      radio15.checked = true;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    dashChips.appendChild(wxChip);
+  }
+
+  // 4. 建立 D1–D7 預設行程天氣與穿搭資料庫
+  const TRIP_DAYS = [
+    {
+      day: 'D1', date: '2026-10-18', label: '10/18 (日)',
+      zone: '廣島機場 HIJ → 廣島站 ekie → 八丁堀公寓',
+      cityKey: 'hiroshima', defaultIcon: '🌤️', defaultDesc: '晴時多雲',
+      hi: 23, lo: 14, rain: 20,
+      tip: '機艙與廣島機場山區較涼，雙寶隨身包請備薄長袖與連帽外套；12:15 抵達廣島站建議先寄放行李再進 ekie 午餐。'
+    },
+    {
+      day: 'D2', date: '2026-10-19', label: '10/19 (一)',
+      zone: '宮島口渡輪 → 嚴島神社 → 宮島水族館',
+      cityKey: 'miyajima', defaultIcon: '☀️', defaultDesc: '晴朗海風涼',
+      hi: 22, lo: 13, rain: 15,
+      tip: '渡輪甲板與退潮沙灘海風強勁，推車務必安裝「防風罩」；淑柃奶奶建議配戴保暖絲巾與防風外套。'
+    },
+    {
+      day: 'D3', date: '2026-10-20', label: '10/20 (二)',
+      zone: '兒童科學館 → 紙鶴塔 → 本通 → 護國神社',
+      cityKey: 'hiroshima', defaultIcon: '🌤️', defaultDesc: '晴間多雲',
+      hi: 24, lo: 14, rain: 20,
+      tip: '科學館與本通商店街有遮蔽且偏暖，採洋蔥式穿法；16:30 護國神社散步接近夕陽（約 17:25 日落），降溫前請幫雙寶加外套。'
+    },
+    {
+      day: 'D4', date: '2026-10-21', label: '10/21 (三)',
+      zone: '新幹線岡山 → 倉敷美觀地區・川舟・みらい公園',
+      cityKey: 'kurashiki', defaultIcon: '⛅', defaultDesc: '多雲時晴',
+      hi: 23, lo: 13, rain: 25,
+      tip: '「晴天之國」岡山倉敷降雨率低；13:30 搭乘川舟無遮蔽請備遮陽帽。下午可善用みらい公園旁的 Ario 倉敷商場育兒室讓雙寶午睡。'
+    },
+    {
+      day: 'D5', date: '2026-10-22', label: '10/22 (四)',
+      zone: 'JR 吳線 → 吳市大和博物館・Youme Town → 本通',
+      cityKey: 'kure', defaultIcon: '🌤️', defaultDesc: '晴時多雲',
+      hi: 22, lo: 14, rain: 25,
+      tip: '吳站至博物館有遮棚平穩空橋，但港灣海風明顯，10 個月亦忻建議加蓋推車防風毯，隨身背包放一把輕量折傘。'
+    },
+    {
+      day: 'D6', date: '2026-10-23', label: '10/23 (五)',
+      zone: '縮景園 → 永旺夢樂城府中 → 廣島站 Bic Camera',
+      cityKey: 'hiroshima', defaultIcon: '☀️', defaultDesc: '秋高氣爽',
+      hi: 23, lo: 13, rain: 20,
+      tip: '09:45 縮景園晨間微涼需穿外套；下午進入永旺商場（阿卡將）與廣島站室內溫暖，雙寶建議穿透氣薄長袖避免流汗。'
+    },
+    {
+      day: 'D7', date: '2026-10-24', label: '10/24 (六)',
+      zone: '八丁堀退房 (07:45) → 廣島站 (08:35 巴士) → 返台',
+      cityKey: 'hiroshima', defaultIcon: '🌤️', defaultDesc: '清晨微涼轉晴',
+      hi: 21, lo: 12, rain: 15,
+      tip: '07:45 退房出門時氣溫僅約 13–14°C，請穿妥保暖外層；戰利品行李多，強烈建議從公寓叫 2 台計程車直達廣島站新幹線口巴士站。'
+    }
+  ];
+
+  // 5. 建立 Panel (#c15) HTML 結構
+  const panel15 = document.createElement('div');
+  panel15.className = 'panel';
+  panel15.id = 'c15';
+  panel15.innerHTML = `
+    <div class="banner-card">
+      <svg preserveAspectRatio="xMidYMid slice" viewBox="0 0 400 118" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="gWx" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#0284C7"/>
+            <stop offset="55%" stop-color="#1E3A8A"/>
+            <stop offset="100%" stop-color="#0F172A"/>
+          </linearGradient>
+        </defs>
+        <rect width="400" height="118" fill="url(#gWx)"/>
+        <circle cx="335" cy="36" r="22" fill="#FDE68A" opacity="0.9"/>
+        <ellipse cx="295" cy="52" rx="34" ry="15" fill="#FFFFFF" opacity="0.85"/>
+        <ellipse cx="325" cy="56" rx="26" ry="12" fill="#FFFFFF" opacity="0.9"/>
+      </svg>
+      <div class="banner-overlay">
+        <div class="kicker">WEATHER FORECAST · JMA / OPEN-METEO</div>
+        <h2>廣島・宮島・倉敷 七日天氣預報</h2>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+        <h3 style="margin:0;">📡 四大行程區域即時氣象看板</h3>
+        <button type="button" class="wx-refresh-btn" id="btn-wx-refresh">🔄 刷新即時預報</button>
+      </div>
+      <div class="meta" id="wx-api-status" style="margin-top:4px;">
+        正在連線日本氣象廳 (JMA / Open-Meteo) 抓取最新預報…
+      </div>
+      <div class="wx-live-grid" id="wx-live-cities">
+        <div class="wx-city-card">
+          <div class="wx-city-head"><span>🏙️ 廣島市中心</span><span id="wx-ico-hiroshima">🌤️</span></div>
+          <div class="wx-city-temp" id="wx-tmp-hiroshima">23° / 14°C</div>
+          <div class="wx-city-meta" id="wx-sub-hiroshima">八丁堀・本通｜降雨 20%</div>
+        </div>
+        <div class="wx-city-card">
+          <div class="wx-city-head"><span>⛩️ 宮島・嚴島</span><span id="wx-ico-miyajima">☀️</span></div>
+          <div class="wx-city-temp" id="wx-tmp-miyajima">22° / 13°C</div>
+          <div class="wx-city-meta" id="wx-sub-miyajima">海濱微風較涼｜降雨 15%</div>
+        </div>
+        <div class="wx-city-card">
+          <div class="wx-city-head"><span>🛶 岡山・倉敷</span><span id="wx-ico-kurashiki">⛅</span></div>
+          <div class="wx-city-temp" id="wx-tmp-kurashiki">23° / 13°C</div>
+          <div class="wx-city-meta" id="wx-sub-kurashiki">美觀地區｜降雨 25%</div>
+        </div>
+        <div class="wx-city-card">
+          <div class="wx-city-head"><span>⚓ 吳市港灣</span><span id="wx-ico-kure">🌤️</span></div>
+          <div class="wx-city-temp" id="wx-tmp-kure">22° / 14°C</div>
+          <div class="wx-city-meta" id="wx-sub-kure">大和博物館｜降雨 25%</div>
+        </div>
+      </div>
+      <div class="quote-box" style="margin-top:10px;">
+        💡 <strong>10 月中下旬核心穿衣法則：</strong>白天陽光下溫暖舒適（21–24°C），但 17:00 日落後與海邊（宮島、吳市）體感會驟降約 10°C（低溫 12–15°C）。請務必採用<strong>「薄長袖 ＋ 輕刷毛/針織中層 ＋ 防風外套」</strong>三層洋蔥式穿法，推車隨掛防風罩！
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>📅 D1–D7 每日行程天氣與長輩雙寶穿搭指南</h3>
+      <div class="meta">已對齊您的每日景點微氣候（連網時將自動覆蓋為當週最新預報數值）：</div>
+      <div class="wx-day-list" id="wx-day-list"></div>
+    </div>
+  `;
+  panels.appendChild(panel15);
+
+  // 6. 渲染每日卡片
+  const dayListEl = document.getElementById('wx-day-list');
+  function renderDayForecasts(liveDailyMap) {
+    if (!dayListEl) return;
+    dayListEl.innerHTML = '';
+    TRIP_DAYS.forEach(item => {
+      const live = liveDailyMap && liveDailyMap[item.date];
+      const hi = live ? Math.round(live.hi) : item.hi;
+      const lo = live ? Math.round(live.lo) : item.lo;
+      const rain = live && live.rain != null ? live.rain : item.rain;
+      const icon = live ? live.icon : item.defaultIcon;
+      const desc = live ? live.desc : item.defaultDesc;
+
+      const card = document.createElement('div');
+      card.className = 'wx-day-item';
+      card.innerHTML = `
+        <div class="wx-day-top">
+          <div class="wx-day-badge">
+            <span class="wx-day-pill">${item.day}</span>
+            <span>${item.label}</span>
+            <span>${icon} ${desc}</span>
+          </div>
+          <div class="wx-day-metrics">
+            <span><span class="wx-temp-hi">${hi}°</span> / <span class="wx-temp-lo">${lo}°C</span></span>
+            <span class="wx-rain-prob">☔ ${rain}%</span>
+          </div>
+        </div>
+        <div class="wx-day-loc">📍 ${item.zone}</div>
+        <div class="wx-day-tip">👗 <strong>穿搭與防呆：</strong>${item.tip}</div>
+      `;
+      dayListEl.appendChild(card);
+    });
+  }
+
+  // WMO 天氣代碼轉換
+  function wmoToInfo(code) {
+    if (code === 0) return { icon: '☀️', desc: '晴朗' };
+    if (code === 1 || code === 2) return { icon: '🌤️', desc: '晴時多雲' };
+    if (code === 3) return { icon: '☁️', desc: '多雲陰天' };
+    if (code >= 45 && code <= 48) return { icon: '🌫️', desc: '晨霧微涼' };
+    if (code >= 51 && code <= 67) return { icon: '🌦️', desc: '局部短暫雨' };
+    if (code >= 80 && code <= 82) return { icon: '🌧️', desc: '陣雨' };
+    return { icon: '⛅', desc: '多雲時晴' };
+  }
+
+  // 7. 從 Open-Meteo 抓取即時預報 (Hiroshima, Miyajima, Kurashiki, Kure)
+  const CITIES = [
+    { key: 'hiroshima', name: '廣島市', lat: 34.3963, lon: 132.4594, note: '八丁堀・本通' },
+    { key: 'miyajima',  name: '宮島',   lat: 34.2960, lon: 132.3198, note: '海濱微風較涼' },
+    { key: 'kurashiki', name: '倉敷',   lat: 34.5950, lon: 133.7720, note: '美觀地區' },
+    { key: 'kure',      name: '吳市',   lat: 34.2415, lon: 132.5556, note: '大和博物館' }
+  ];
+
+  async function fetchLiveWeather() {
+    const statusEl = document.getElementById('wx-api-status');
+    if (statusEl) statusEl.textContent = '🔄 正在同步日本氣象廳 (JMA / Open-Meteo) 最新預報資料…';
+
+    try {
+      const lats = CITIES.map(c => c.lat).join(',');
+      const lons = CITIES.map(c => c.lon).join(',');
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Asia%2FTokyo&forecast_days=14`;
+
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Network error');
+      const data = await res.json();
+      const results = Array.isArray(data) ? data : [data];
+
+      const hiroshimaDateMap = {};
+
+      results.forEach((cityData, idx) => {
+        const city = CITIES[idx];
+        if (!cityData || !cityData.daily) return;
+        const d = cityData.daily;
+        const hi0 = Math.round(d.temperature_2m_max[0]);
+        const lo0 = Math.round(d.temperature_2m_min[0]);
+        const rain0 = d.precipitation_probability_max ? (d.precipitation_probability_max[0] ?? 20) : 20;
+        const wmo0 = wmoToInfo(d.weather_code[0]);
+
+        const icoEl = document.getElementById(`wx-ico-${city.key}`);
+        const tmpEl = document.getElementById(`wx-tmp-${city.key}`);
+        const subEl = document.getElementById(`wx-sub-${city.key}`);
+        if (icoEl) icoEl.textContent = wmo0.icon;
+        if (tmpEl) tmpEl.textContent = `${hi0}° / ${lo0}°C`;
+        if (subEl) subEl.textContent = `${city.note}｜今日降雨 ${rain0}%`;
+
+        // 將每日日期對應存入表內（若為該日對應城市則優先使用）
+        d.time.forEach((dateStr, i) => {
+          const wmo = wmoToInfo(d.weather_code[i]);
+          if (!hiroshimaDateMap[dateStr]) hiroshimaDateMap[dateStr] = {};
+          hiroshimaDateMap[dateStr][city.key] = {
+            hi: d.temperature_2m_max[i],
+            lo: d.temperature_2m_min[i],
+            rain: d.precipitation_probability_max ? (d.precipitation_probability_max[i] ?? 20) : 20,
+            icon: wmo.icon,
+            desc: wmo.desc
+          };
+        });
+      });
+
+      // 依每日所在城市配對預報
+      const matchedDaily = {};
+      TRIP_DAYS.forEach(td => {
+        const dayRecord = hiroshimaDateMap[td.date];
+        if (dayRecord && dayRecord[td.cityKey]) {
+          matchedDaily[td.date] = dayRecord[td.cityKey];
+        }
+      });
+
+      renderDayForecasts(matchedDaily);
+      const now = new Date();
+      const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+      if (statusEl) {
+        statusEl.textContent = `🟢 已連線同步最新氣象預報（更新時間 ${timeStr}）`;
+        statusEl.style.color = 'var(--moss)';
+      }
+    } catch (e) {
+      renderDayForecasts(null);
+      if (statusEl) {
+        statusEl.textContent = '🟡 目前為離線氣候基準模式（顯示 10/18–10/24 廣島秋季歷史預報基準）';
+        statusEl.style.color = 'var(--gold)';
+      }
+    }
+  }
+
+  renderDayForecasts(null);
+  fetchLiveWeather();
+
+  const refreshBtn = document.getElementById('btn-wx-refresh');
+  if (refreshBtn) refreshBtn.addEventListener('click', fetchLiveWeather);
+})();
+</script>
 </body>
 </html>
